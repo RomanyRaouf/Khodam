@@ -1,97 +1,375 @@
-<!-- قسم التقارير والتصدير -->
-<section id="reportsSection" class="card shadow-sm mb-4">
-  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-    <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والتصدير</h5>
-    <button class="btn btn-light btn-sm" onclick="exportToExcel()">
-      <i class="bi bi-file-earmark-excel text-success me-1"></i>تصدير إلى Excel
-    </button>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة وتتبع الحضور</title>
+  
+  <!-- Bootstrap 5 RTL CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .style-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .style-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 4px;
+    }
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    .loading-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="p-3 p-md-4">
+
+  <!-- شاشة التحميل (Loading Overlay) -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="text-center">
+      <div class="spinner-border text-primary mb-2" style="width: 3rem; height: 3rem;" role="status"></div>
+      <p class="fw-bold text-secondary">جاري جلب / تسجيل البيانات...</p>
+    </div>
   </div>
-  <div class="card-body">
-    <!-- شريط تصفية وتحديد التاريخ/الفترة -->
-    <div class="row g-3 mb-4 align-items-end">
-      <div class="col-md-4">
-        <label for="reportDate" class="form-label fw-bold">اختر التاريخ:</label>
-        <input type="date" id="reportDate" class="form-control" onchange="generateReports()">
+
+  <div class="container-fluid max-width-xl">
+    
+    <!-- هيدر الصفحة -->
+    <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
+      <h3 class="m-0 text-primary fw-bold">
+        <i class="bi bi-calendar-check me-2"></i>نظام متابعة الحضور والخدمة
+      </h3>
+      <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
+    </header>
+
+    <!-- 1. قسم إدخال وتسجيل الحضور -->
+    <section class="card shadow-sm mb-4">
+      <div class="card-header bg-dark text-white fw-bold">
+        <i class="bi bi-person-check me-2"></i>تسجيل حضور جديد
       </div>
-      <div class="col-md-4">
-        <label for="reportStage" class="form-label fw-bold">المرحلة / الصف:</label>
-        <select id="reportStage" class="form-select" onchange="generateReports()">
-          <option value="all">كل المراحل</option>
-          <option value="primary">ابتدائي</option>
-          <option value="prep">إعدادي</option>
-          <option value="sec">ثانوي</option>
-        </select>
+      <div class="card-body">
+        <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label fw-bold">اسم الشخص / المخدوم:</label>
+              <input type="text" id="personName" class="form-control" placeholder="أدخل الاسم..." required>
+            </div>
+            
+            <div class="col-md-3">
+              <label class="form-label fw-bold">المرحلة / الصف:</label>
+              <select id="personStage" class="form-select" required>
+                <option value="" selected disabled>اختر المرحلة...</option>
+                <option value="primary">ابتدائي</option>
+                <option value="prep">إعدادي</option>
+                <option value="sec">ثانوي</option>
+                <option value="servant">خادم</option>
+              </select>
+            </div>
+
+            <div class="col-md-2">
+              <label class="form-label fw-bold">التاريخ:</label>
+              <input type="date" id="attendanceDate" class="form-control" required>
+            </div>
+
+            <!-- خيارات الأنشطة الثلاثة -->
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="d-flex gap-3 bg-light p-2 rounded w-100 justify-content-around border">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chkMass">
+                  <label class="form-check-label fw-bold text-success" for="chkMass">القداس</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chkSundaySchool">
+                  <label class="form-check-label fw-bold text-info" for="chkSundaySchool">مدارس الأحد</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chkServiceMeeting">
+                  <label class="form-check-label fw-bold text-warning" for="chkServiceMeeting">اجتماع الخدمة</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 text-end">
+              <button type="submit" class="btn btn-primary px-4 fw-bold">
+                <i class="bi bi-save me-1"></i>حفظ السجل
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-      <div class="col-md-4 text-end">
-        <button class="btn btn-outline-primary w-100" onclick="generateReports()">
-          <i class="bi bi-arrow-clockwise me-1"></i>تحديث التقارير
+    </section>
+
+    <!-- 2. قسم التقارير والتصدير (الأنشطة الأربعة) -->
+    <section id="reportsSection" class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والغياب</h5>
+        <button class="btn btn-light btn-sm fw-bold" onclick="exportData()">
+          <i class="bi bi-file-earmark-excel text-success me-1"></i>تحديث البيانات من السيرفر
         </button>
       </div>
-    </div>
-
-    <!-- شبكة التقارير (4 أقسام) -->
-    <div class="row g-3">
-      
-      <!-- 1. حضور القداس -->
-      <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-success">
-          <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-church me-1"></i>حضور القداس</span>
-            <span id="massCount" class="badge bg-white text-success fs-6">0</span>
+      <div class="card-body">
+        
+        <!-- أدوات تصفية التقارير -->
+        <div class="row g-3 mb-4 align-items-end">
+          <div class="col-md-4">
+            <label for="reportDate" class="form-label fw-bold">تاريخ التقرير:</label>
+            <input type="date" id="reportDate" class="form-control" onchange="generateReports()">
           </div>
-          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
-            <ul id="massList" class="list-group list-group-flush">
-              <!-- يتم ملؤه ديناميكياً -->
-            </ul>
+          <div class="col-md-4">
+            <label for="reportStage" class="form-label fw-bold">المرحلة / الصف:</label>
+            <select id="reportStage" class="form-select" onchange="generateReports()">
+              <option value="all">كل المراحل</option>
+              <option value="primary">ابتدائي</option>
+              <option value="prep">إعدادي</option>
+              <option value="sec">ثانوي</option>
+              <option value="servant">خادم</option>
+            </select>
           </div>
-        </div>
-      </div>
-
-      <!-- 2. حضور مدارس الأحد -->
-      <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-info">
-          <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-book me-1"></i>مدارس الأحد</span>
-            <span id="sundaySchoolCount" class="badge bg-white text-info fs-6">0</span>
-          </div>
-          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
-            <ul id="sundaySchoolList" class="list-group list-group-flush">
-              <!-- يتم ملؤه ديناميكياً -->
-            </ul>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-outline-primary w-100 fw-bold" onclick="generateReports()">
+              <i class="bi bi-arrow-clockwise me-1"></i>عرض / تحديث التقرير
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- 3. حضور اجتماع الخدمة -->
-      <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-warning">
-          <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-people me-1"></i>اجتماع الخدمة</span>
-            <span id="serviceMeetingCount" class="badge bg-dark text-white fs-6">0</span>
+        <!-- شبكة التقارير للأقسام الأربعة -->
+        <div class="row g-3">
+          
+          <!-- 1. حضور القداس -->
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-success">
+              <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-church me-1"></i>حضور القداس</span>
+                <span id="massCount" class="badge bg-white text-success fs-6">0</span>
+              </div>
+              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+                <ul id="massList" class="list-group list-group-flush"></ul>
+              </div>
+            </div>
           </div>
-          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
-            <ul id="serviceMeetingList" class="list-group list-group-flush">
-              <!-- يتم ملؤه ديناميكياً -->
-            </ul>
+
+          <!-- 2. حضور مدارس الأحد -->
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-info">
+              <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-book me-1"></i>مدارس الأحد</span>
+                <span id="sundaySchoolCount" class="badge bg-white text-info fs-6">0</span>
+              </div>
+              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+                <ul id="sundaySchoolList" class="list-group list-group-flush"></ul>
+              </div>
+            </div>
           </div>
+
+          <!-- 3. حضور اجتماع الخدمة -->
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-warning">
+              <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people me-1"></i>اجتماع الخدمة</span>
+                <span id="serviceMeetingCount" class="badge bg-dark text-white fs-6">0</span>
+              </div>
+              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+                <ul id="serviceMeetingList" class="list-group list-group-flush"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. الغياب الكلي -->
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-danger">
+              <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-person-x me-1"></i>الغياب الكلي</span>
+                <span id="absentCount" class="badge bg-white text-danger fs-6">0</span>
+              </div>
+              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+                <ul id="absentList" class="list-group list-group-flush"></ul>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
+    </section>
 
-      <!-- 4. الغياب الكلي -->
-      <div class="col-md-6 col-lg-3">
-        <div class="card h-100 border-danger">
-          <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-person-x me-1"></i>الغياب الكلي</span>
-            <span id="absentCount" class="badge bg-white text-danger fs-6">0</span>
-          </div>
-          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
-            <ul id="absentList" class="list-group list-group-flush">
-              <!-- يتم ملؤه ديناميكياً -->
-            </ul>
-          </div>
-        </div>
-      </div>
-
-    </div>
   </div>
-</section>
+
+  <!-- JavaScript Script Scripting -->
+  <script>
+    // رابط Apps Script الخاص بك
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
+
+    // التخزين المحلي للبيانات
+    let recordsData = [];
+
+    // إعداد التواريخ الافتراضية عند تحميل الصفحة
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('attendanceDate').value = today;
+      document.getElementById('reportDate').value = today;
+      document.getElementById('currentDateBadge').textContent = today;
+      
+      // جلب البيانات الأولية
+      fetchServerData();
+    });
+
+    // إظهار/إخفاء شاشة التحميل
+    function toggleSpinner(show) {
+      const spinner = document.getElementById('loadingOverlay');
+      if (show) spinner.classList.add('active');
+      else spinner.classList.remove('active');
+    }
+
+    // جلب البيانات من السيرفر (Google Apps Script)
+    async function fetchServerData() {
+      toggleSpinner(true);
+      try {
+        const response = await fetch(SCRIPT_URL);
+        if (response.ok) {
+          const data = await response.json();
+          recordsData = data || [];
+          generateReports();
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        toggleSpinner(false);
+      }
+    }
+
+    // إرسال السجل الجديد للسيرفر
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const payload = {
+        name: document.getElementById('personName').value,
+        stage: document.getElementById('personStage').value,
+        date: document.getElementById('attendanceDate').value,
+        attendedMass: document.getElementById('chkMass').checked,
+        attendedSundaySchool: document.getElementById('chkSundaySchool').checked,
+        attendedServiceMeeting: document.getElementById('chkServiceMeeting').checked
+      };
+
+      toggleSpinner(true);
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors', // للتعامل مع قيود Google Apps Script CORS
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // إضافة البيانات محلياً لتفادي إعادة التحميل الفوري
+        recordsData.push(payload);
+        generateReports();
+        
+        // إعادة ضبط الحقول
+        document.getElementById('attendanceForm').reset();
+        document.getElementById('attendanceDate').value = payload.date;
+        alert('تم حفظ البيانات بنجاح!');
+      } catch (err) {
+        alert('حدث خطأ أثناء حفظ البيانات، يرجى المحاولة مرة أخرى.');
+        console.error(err);
+      } finally {
+        toggleSpinner(false);
+      }
+    }
+
+    // دالة توليد وعرض التقارير والأقسام الأربعة
+    function generateReports() {
+      const selectedDate = document.getElementById('reportDate').value;
+      const selectedStage = document.getElementById('reportStage').value;
+
+      const massList = document.getElementById('massList');
+      const sundaySchoolList = document.getElementById('sundaySchoolList');
+      const serviceMeetingList = document.getElementById('serviceMeetingList');
+      const absentList = document.getElementById('absentList');
+
+      // تفريغ المحتوى
+      massList.innerHTML = '';
+      sundaySchoolList.innerHTML = '';
+      serviceMeetingList.innerHTML = '';
+      absentList.innerHTML = '';
+
+      let cMass = 0, cSunday = 0, cService = 0, cAbsent = 0;
+
+      // تصفية البيانات حسب التاريخ والمرحلة
+      const filtered = recordsData.filter(item => {
+        const matchDate = !selectedDate || item.date === selectedDate;
+        const matchStage = selectedStage === 'all' || item.stage === selectedStage;
+        return matchDate && matchStage;
+      });
+
+      filtered.forEach(item => {
+        const isMass = item.attendedMass === true || item.attendedMass === 'true';
+        const isSunday = item.attendedSundaySchool === true || item.attendedSundaySchool === 'true';
+        const isService = item.attendedServiceMeeting === true || item.attendedServiceMeeting === 'true';
+
+        // 1. حضور القداس
+        if (isMass) {
+          cMass++;
+          massList.appendChild(createListItem(item.name));
+        }
+
+        // 2. حضور مدارس الأحد
+        if (isSunday) {
+          cSunday++;
+          sundaySchoolList.appendChild(createListItem(item.name));
+        }
+
+        // 3. حضور اجتماع الخدمة
+        if (isService) {
+          cService++;
+          serviceMeetingList.appendChild(createListItem(item.name));
+        }
+
+        // 4. الغياب الكلي (لم يحضر أي نشاط)
+        if (!isMass && !isSunday && !isService) {
+          cAbsent++;
+          absentList.appendChild(createListItem(item.name, 'text-danger fw-bold'));
+        }
+      });
+
+      // تحديث الشارات والأعداد
+      document.getElementById('massCount').textContent = cMass;
+      document.getElementById('sundaySchoolCount').textContent = cSunday;
+      document.getElementById('serviceMeetingCount').textContent = cService;
+      document.getElementById('absentCount').textContent = cAbsent;
+    }
+
+    // إنشاء عنصر قائمة القوائم
+    function createListItem(text, extraClass = '') {
+      const li = document.createElement('li');
+      li.className = `list-group-item py-1 px-2 border-0 border-bottom small ${extraClass}`;
+      li.textContent = text;
+      return li;
+    }
+
+    function exportData() {
+      fetchServerData();
+    }
+  </script>
+</body>
+</html>
