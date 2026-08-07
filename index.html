@@ -1,521 +1,414 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام تسجيل حضور الخدام</title>
-  <style>
-    :root {
-      --primary-color: #007bff;
-      --success-color: #28a745;
-      --danger-color: #dc3545;
-      --bg-color: #f8f9fa;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-    }
-
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      margin: 0;
-      padding: 15px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 600px;
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      text-align: center;
-      color: var(--primary-color);
-      margin-top: 0;
-      margin-bottom: 20px;
-    }
-
-    .status-bar {
-      padding: 10px;
-      border-radius: 6px;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 15px;
-      font-size: 0.9em;
-    }
-
-    .status-loading {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    .status-success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .status-error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .btn-add-servant {
-      width: 100%;
-      background-color: var(--success-color);
-      color: #fff;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-bottom: 20px;
-      font-size: 1em;
-    }
-
-    .btn-add-servant:hover {
-      opacity: 0.9;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    .form-group input, .form-group select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
-    }
-
-    /* قائمة الاقتراحات التلقائية */
-    .suggestions-list {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-top: none;
-      border-radius: 0 0 6px 6px;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 10;
-      display: none;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .suggestion-item {
-      padding: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-    }
-
-    .suggestion-item:hover {
-      background-color: #f1f1f1;
-    }
-
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #f1f3f5;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-
-    .checkbox-item input {
-      width: 18px;
-      height: 18px;
-    }
-
-    .btn-submit {
-      width: 100%;
-      background-color: var(--primary-color);
-      color: #fff;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1.1em;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .btn-submit:disabled {
-      background-color: #aaa;
-    }
-
-    /* Modal - النافذة المنبثقة */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .modal-actions button {
-      flex: 1;
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .btn-save {
-      background: var(--success-color);
-      color: white;
-    }
-
-    .btn-cancel {
-      background: #6c757d;
-      color: white;
-    }
-
-    .msg-box {
-      margin-top: 10px;
-      padding: 8px;
-      border-radius: 4px;
-      text-align: center;
-      font-size: 0.9em;
-    }
-
-    .msg-error {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    .msg-success {
-      background: #d4edda;
-      color: #155724;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة متابعة وحضور الخدام</title>
+    <!-- CSS Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- FontAwesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Tajawal) -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .main-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            background: #fff;
+        }
+        .card-header-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.25);
+        }
+        .btn-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            opacity: 0.95;
+            color: white;
+            transform: translateY(-1px);
+        }
+        .servant-result-item {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .servant-result-item:hover {
+            background-color: #e9ecef;
+        }
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <h2>تسجيل حضور الخدام</h2>
-
-    <!-- شريط حالة التحميل -->
-    <div id="statusLoading" class="status-bar status-loading">⏳ جاري تحميل قائمة الخدام...</div>
-
-    <!-- زر إضافة خادم جديد -->
-    <button type="button" class="btn-add-servant" onclick="openAddServantModal()">➕ إضافة خادم جديد</button>
-
-    <!-- نموذج تسجيل الحضور -->
-    <form id="attendanceForm">
-      <div class="form-group">
-        <label>التاريخ:</label>
-        <input type="date" id="attendanceDate" required>
-      </div>
-
-      <div class="form-group">
-        <label>كود الخادم:</label>
-        <input type="text" id="servantCode" placeholder="أدخل الكود أو ابحث بالاسم" autocomplete="off" required>
-        <div id="suggestionsList" class="suggestions-list"></div>
-      </div>
-
-      <div class="form-group">
-        <label>اسم الخادم:</label>
-        <input type="text" id="servantName" readonly placeholder="يظهر تلقائياً...">
-      </div>
-
-      <div class="form-group">
-        <label>الخدمة:</label>
-        <input type="text" id="serviceType" readonly placeholder="تظهر تلقائياً...">
-      </div>
-
-      <div class="checkbox-group">
-        <label class="checkbox-item">
-          <input type="checkbox" id="chkQaddas">
-          <span>القداس</span>
-        </label>
-        <label class="checkbox-item">
-          <input type="checkbox" id="chkSundaySchool">
-          <span>مدارس الأحد</span>
-        </label>
-        <label class="checkbox-item">
-          <input type="checkbox" id="chkMeeting">
-          <span>الاجتماع</span>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>تحضير الدرس:</label>
-        <select id="preparation">
-          <option value="محضر">محضر</option>
-          <option value="غير محضر">غير محضر</option>
-          <option value="-">-</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>قراءة الكتاب المقدس:</label>
-        <select id="bible">
-          <option value="منتظم">منتظم</option>
-          <option value="غير منتظم">غير منتظم</option>
-        </select>
-      </div>
-
-      <button type="submit" id="btnSubmit" class="btn-submit" disabled>💾 حفظ البيانات</button>
-    </form>
-  </div>
-
-  <!-- النافذة المنبثقة (Modal) لإضافة خادم جديد -->
-  <div id="addServantModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-      <h3 style="margin-top:0; text-align:center;">إضافة خادم جديد</h3>
-      <div class="form-group">
-        <label>اسم الخادم الثلاثي:</label>
-        <input type="text" id="newServantName" placeholder="أدخل الاسم كامل">
-      </div>
-      <div class="form-group">
-        <label>الخدمة:</label>
-        <input type="text" id="newServantService" placeholder="مثال: ابتدائي / إعدادي">
-      </div>
-      <div id="addModalMsg" class="msg-box" style="display: none;"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn-save" id="btnSaveNewServant" onclick="submitNewServant()">حفظ الخادم</button>
-        <button type="button" class="btn-cancel" onclick="closeAddServantModal()">إلغاء</button>
-      </div>
+    <!-- مؤشر التحميل -->
+    <div id="loadingSpinner" class="spinner-overlay d-none">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">جاري التحميل...</span>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // رابط Google Apps Script الخاص بك
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSJEIVQCSjrmnfYsOXdrBYGhd0sCYjWFcYGfwFLhKamMMN95KJ4_S3PIyYpEYUpmuu/exec";
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card main-card">
+                    <div class="card-header-custom text-center">
+                        <h3 class="mb-0"><i class="fa-solid fa-clipboard-user me-2"></i>منظومة متابعة وحضور الخدام</h3>
+                    </div>
+                    <div class="card-body p-4">
 
-    let servantsList = [];
+                        <!-- حالة الاتصال -->
+                        <div id="statusAlert" class="alert d-none" role="alert"></div>
 
-    // إعداد تاريخ اليوم كافتراضي
-    document.getElementById('attendanceDate').valueAsDate = new Date();
+                        <!-- 1. البحث عن خادم أو إضافته -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="fa-solid fa-magnifying-glass me-1"></i> البحث عن خادم (بالاسم أو الكود):</label>
+                            <div class="input-group">
+                                <input type="text" id="servantSearchInput" class="form-control" placeholder="اكتب اسم الخادم أو الكود..." autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSelection()">تفريغ</button>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addServantModal">
+                                    <i class="fa-solid fa-user-plus"></i> إضافة خادم
+                                </button>
+                            </div>
+                            <!-- قائمة اقتراحات البحث -->
+                            <ul id="searchResults" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1000; max-height: 200px; overflow-y: auto;"></ul>
+                        </div>
 
-    // جلب قائمة الخدام عند تحميل الصفحة
-    window.onload = function() {
-      fetch(`${SCRIPT_URL}?action=searchServants`)
-        .then(res => res.json())
-        .then(data => {
-          servantsList = data;
-          const statusElem = document.getElementById('statusLoading');
-          statusElem.className = "status-bar status-success";
-          statusElem.innerText = "✅ تم تحميل الخدام بنجاح";
-          document.getElementById('btnSubmit').disabled = false;
-        })
-        .catch(err => {
-          console.error(err);
-          const statusElem = document.getElementById('statusLoading');
-          statusElem.className = "status-bar status-error";
-          statusElem.innerText = "❌ فشل تحميل قائمة الخدام";
+                        <!-- نموذج تسجيل الحضور -->
+                        <form id="attendanceForm">
+                            <!-- البيانات الأساسية للخادم -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">كود الخادم</label>
+                                    <input type="text" id="servantCode" class="form-control" readonly required placeholder="يملأ تلقائياً">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">اسم الخادم</label>
+                                    <input type="text" id="servantName" class="form-control" readonly required placeholder="يملأ تلقائياً">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">الخدمة / المرحلة</label>
+                                    <input type="text" id="servantService" class="form-control" readonly placeholder="يملأ تلقائياً">
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- التاريخ -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold"><i class="fa-regular fa-calendar-days me-1"></i> التاريخ:</label>
+                                <input type="date" id="attendanceDate" class="form-control" required>
+                            </div>
+
+                            <!-- تفاصيل الحضور والأنشطة -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">القداس الإلهي</label>
+                                    <select id="qaddas" class="form-select">
+                                        <option value="حضر">حضر</option>
+                                        <option value="تناول">حضر وتناول</option>
+                                        <option value="لم يحضر">لم يحضر</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">مدارس الأحد / الخدمة</label>
+                                    <select id="sundaySchool" class="form-select">
+                                        <option value="حضر">حضر</option>
+                                        <option value="اعتذار">اعتذار</option>
+                                        <option value="غائب">غائب</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">اجتماع الخدام</label>
+                                    <select id="meeting" class="form-select">
+                                        <option value="حضر">حضر</option>
+                                        <option value="اعتذار">اعتذار</option>
+                                        <option value="غائب">غائب</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">تحضير الدرس</label>
+                                    <select id="preparation" class="form-select">
+                                        <option value="تم التحضير">تم التحضير</option>
+                                        <option value="لم يتم">لم يتم</option>
+                                        <option value="غير مطبق">غير مطبق</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">متابعة قراءة الكتاب المقدس</label>
+                                <select id="bible" class="form-select">
+                                    <option value="منتظم">منتظم</option>
+                                    <option value="غير منتظم">غير منتظم</option>
+                                </select>
+                            </div>
+
+                            <!-- زر الحفظ -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-custom btn-lg">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> حفظ البيانات
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة خادم جديد (Modal) -->
+    <div class="modal fade" id="addServantModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">إضافة خادم جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addServantForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اسم الخادم الثلاثي</label>
+                            <input type="text" id="newServantName" class="form-control" placeholder="أدخل الاسم..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">الخدمة / الفصل</label>
+                            <input type="text" id="newServantService" class="form-control" placeholder="مثال: ابتدائي / إعدادي">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">إضافة الخادم</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Bootstrap -->
+    <script href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // رابط السكربت الخاص بك
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhauo6Nt_fwF8ZP_tAEyE5lHIamg0uUcIHlk9SyMNs-M9eV5UBywabfqQaxgbSob5nbw/exec";
+        
+        let servantsData = [];
+
+        // ضبط تاريخ اليوم تلقائياً
+        document.getElementById('attendanceDate').valueAsDate = new Date();
+
+        // جلب قائمة الخدام عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', loadServantsList);
+
+        function showSpinner(show) {
+            const spinner = document.getElementById('loadingSpinner');
+            if (show) spinner.classList.remove('d-none');
+            else spinner.classList.add('d-none');
+        }
+
+        function showAlert(message, type = 'danger') {
+            const alertBox = document.getElementById('statusAlert');
+            alertBox.className = `alert alert-${type}`;
+            alertBox.innerText = message;
+            alertBox.classList.remove('d-none');
+            setTimeout(() => { alertBox.classList.add('d-none'); }, 5000);
+        }
+
+        // 1. تحميل قائمة الخدام
+        function loadServantsList() {
+            showSpinner(true);
+            fetch(`${SCRIPT_URL}?action=searchServants`)
+                .then(res => res.json())
+                .then(data => {
+                    showSpinner(false);
+                    if (Array.isArray(data)) {
+                        servantsData = data;
+                    } else {
+                        showAlert('حدث خطأ في استلام قائمة الخدام', 'danger');
+                    }
+                })
+                .catch(err => {
+                    showSpinner(false);
+                    showAlert('❌ فشل تحميل قائمة الخدام، تأكد من الاتصال بالنترنت أو صلاحيات نشر السكربت.', 'danger');
+                    console.error(err);
+                });
+        }
+
+        // 2. البحث والفلترة التلقائية
+        const searchInput = document.getElementById('servantSearchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        searchInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            searchResults.innerHTML = '';
+            
+            if (!val) {
+                searchResults.classList.add('d-none');
+                return;
+            }
+
+            const filtered = servantsData.filter(s => 
+                s.name.toLowerCase().includes(val) || s.code.toLowerCase().includes(val)
+            );
+
+            if (filtered.length > 0) {
+                filtered.forEach(s => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item servant-result-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `<span><strong>${s.name}</strong></span> <span class="badge bg-secondary">${s.code}</span>`;
+                    li.onclick = () => selectServant(s);
+                    searchResults.appendChild(li);
+                });
+                searchResults.classList.remove('d-none');
+            } else {
+                searchResults.classList.add('d-none');
+            }
         });
-    };
 
-    // البحث بالتزامن أثناء الكتابة في حقل الكود أو الاسم
-    const codeInput = document.getElementById('servantCode');
-    const suggestionsList = document.getElementById('suggestionsList');
+        function selectServant(servant) {
+            document.getElementById('servantCode').value = servant.code;
+            document.getElementById('servantName').value = servant.name;
+            document.getElementById('servantService').value = servant.service || '-';
+            searchInput.value = servant.name;
+            searchResults.classList.add('d-none');
+        }
 
-    codeInput.addEventListener('input', function() {
-      const val = this.value.trim().toLowerCase();
-      suggestionsList.innerHTML = '';
-      
-      if (!val) {
-        suggestionsList.style.display = 'none';
-        clearServantInfo();
-        return;
-      }
-
-      // مطابقة بالإكواد أو الأسماء
-      const matches = servantsList.filter(s => 
-        String(s.code).toLowerCase().includes(val) || 
-        String(s.name).toLowerCase().includes(val)
-      );
-
-      if (matches.length > 0) {
-        matches.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'suggestion-item';
-          div.innerText = `${item.code} - ${item.name} (${item.service || 'بدون خدمة'})`;
-          div.onclick = function() {
-            selectServant(item);
-          };
-          suggestionsList.appendChild(div);
-        });
-        suggestionsList.style.display = 'block';
-      } else {
-        suggestionsList.style.display = 'none';
-        clearServantInfo();
-      }
-    });
-
-    function selectServant(servant) {
-      document.getElementById('servantCode').value = servant.code;
-      document.getElementById('servantName').value = servant.name;
-      document.getElementById('serviceType').value = servant.service || '';
-      suggestionsList.style.display = 'none';
-    }
-
-    function clearServantInfo() {
-      document.getElementById('servantName').value = '';
-      document.getElementById('serviceType').value = '';
-    }
-
-    // إخفاء القائمة عند النقر خارجها
-    document.addEventListener('click', function(e) {
-      if (e.target !== codeInput) {
-        suggestionsList.style.display = 'none';
-      }
-    });
-
-    // حفظ بيانات الحضور
-    document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const btn = document.getElementById('btnSubmit');
-      btn.disabled = true;
-      btn.innerText = "⏳ جاري الحفظ...";
-
-      const payload = {
-        action: "saveData",
-        date: document.getElementById('attendanceDate').value,
-        code: document.getElementById('servantCode').value,
-        name: document.getElementById('servantName').value,
-        service: document.getElementById('serviceType').value,
-        qaddas: document.getElementById('chkQaddas').checked ? "حضر" : "لم يحضر",
-        sundaySchool: document.getElementById('chkSundaySchool').checked ? "حضر" : "لم يحضر",
-        meeting: document.getElementById('chkMeeting').checked ? "حضر" : "لم يحضر",
-        preparation: document.getElementById('preparation').value,
-        bible: document.getElementById('bible').value
-      };
-
-      const queryParams = new URLSearchParams(payload).toString();
-
-      fetch(`${SCRIPT_URL}?${queryParams}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === "success") {
-            alert("✅ تم حفظ الحضور بنجاح!");
-            // إعادة ضبط الإدخالات
+        function clearSelection() {
             document.getElementById('servantCode').value = '';
-            clearServantInfo();
-            document.getElementById('chkQaddas').checked = false;
-            document.getElementById('chkSundaySchool').checked = false;
-            document.getElementById('chkMeeting').checked = false;
-          } else {
-            alert("❌ حدث خطأ أثناء حفظ البيانات");
-          }
-        })
-        .catch(() => alert("❌ تعذر الاتصال بالسيرفر"))
-        .finally(() => {
-          btn.disabled = false;
-          btn.innerText = "💾 حفظ البيانات";
+            document.getElementById('servantName').value = '';
+            document.getElementById('servantService').value = '';
+            searchInput.value = '';
+            searchResults.classList.add('d-none');
+        }
+
+        // 3. حفظ بيانات الحضور
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const code = document.getElementById('servantCode').value;
+            if (!code) {
+                showAlert('الرجاء اختيار خادم أولاً من قائمة البحث!', 'warning');
+                return;
+            }
+
+            showSpinner(true);
+
+            const params = new URLSearchParams({
+                action: 'saveData',
+                date: document.getElementById('attendanceDate').value,
+                code: code,
+                name: document.getElementById('servantName').value,
+                service: document.getElementById('servantService').value,
+                qaddas: document.getElementById('qaddas').value,
+                sundaySchool: document.getElementById('sundaySchool').value,
+                meeting: document.getElementById('meeting').value,
+                preparation: document.getElementById('preparation').value,
+                bible: document.getElementById('bible').value
+            });
+
+            fetch(`${SCRIPT_URL}?${params.toString()}`)
+                .then(res => res.json())
+                .then(res => {
+                    showSpinner(false);
+                    if (res.status === 'success') {
+                        showAlert('✅ تم تسجيل الحضور بنجاح!', 'success');
+                        clearSelection();
+                    } else {
+                        showAlert('حدث خطأ أثناء الحفظ: ' + res.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    showSpinner(false);
+                    showAlert('❌ فشل الاتصال بالسيرفر أثناء الحفظ', 'danger');
+                });
         });
-    });
 
-    // دوال نافذة إضافة خادم جديد
-    function openAddServantModal() {
-      document.getElementById('newServantName').value = '';
-      document.getElementById('newServantService').value = '';
-      document.getElementById('addModalMsg').style.display = 'none';
-      document.getElementById('addServantModal').style.display = 'flex';
-    }
+        // 4. إضافة خادم جديد
+        document.getElementById('addServantForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('newServantName').value.trim();
+            const service = document.getElementById('newServantService').value.trim();
 
-    function closeAddServantModal() {
-      document.getElementById('addServantModal').style.display = 'none';
-    }
+            if (!name) return;
 
-    function submitNewServant() {
-      const name = document.getElementById('newServantName').value.trim();
-      const service = document.getElementById('newServantService').value.trim();
-      const msgBox = document.getElementById('addModalMsg');
-      const saveBtn = document.getElementById('btnSaveNewServant');
+            showSpinner(true);
+            
+            const modalEl = document.getElementById('addServantModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
 
-      if (!name) {
-        msgBox.className = "msg-box msg-error";
-        msgBox.innerText = "⚠️ يرجى كتابة اسم الخادم";
-        msgBox.style.display = 'block';
-        return;
-      }
+            const params = new URLSearchParams({
+                action: 'addServant',
+                name: name,
+                service: service
+            });
 
-      saveBtn.disabled = true;
-      saveBtn.innerText = "⏳ جاري الإضافة...";
-
-      const payload = {
-        action: "addServant",
-        name: name,
-        service: service
-      };
-
-      const queryParams = new URLSearchParams(payload).toString();
-
-      fetch(`${SCRIPT_URL}?${queryParams}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === "success") {
-            // تحديث القائمة المحلية فوراً
-            servantsList.push(data.newServant);
-
-            // تحديد الخادم الجديد في عناصر الواجهة فوراً
-            selectServant(data.newServant);
-
-            closeAddServantModal();
-            alert(`✅ تم إضافة الخادم بنجاح!\nالكود الجديد المولد هو: ${data.newServant.code}`);
-          } else {
-            msgBox.className = "msg-box msg-error";
-            msgBox.innerText = "❌ حدث خطأ أثناء حفظ الخادم";
-            msgBox.style.display = 'block';
-          }
-        })
-        .catch(() => {
-          msgBox.className = "msg-box msg-error";
-          msgBox.innerText = "❌ تعذر الاتصال بالسيرفر";
-          msgBox.style.display = 'block';
-        })
-        .finally(() => {
-          saveBtn.disabled = false;
-          saveBtn.innerText = "حفظ الخادم";
+            fetch(`${SCRIPT_URL}?${params.toString()}`)
+                .then(res => res.json())
+                .then(res => {
+                    showSpinner(false);
+                    if (res.status === 'success') {
+                        showAlert('✅ تم إضافة الخادم جديد بنجاح!', 'success');
+                        modal.hide();
+                        document.getElementById('addServantForm').reset();
+                        // تحديث قائمة الخدام
+                        loadServantsList();
+                        // اختياره تلقائياً
+                        selectServant(res.newServant);
+                    } else {
+                        showAlert('خطأ أثناء إضافة الخادم: ' + res.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    showSpinner(false);
+                    showAlert('❌ فشل الاتصال بالخادم عند الإضافة', 'danger');
+                });
         });
-    }
-  </script>
+
+        // إغلاق قائمة البحث عند الضغط خارجها
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('d-none');
+            }
+        });
+    </script>
 </body>
 </html>
