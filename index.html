@@ -29,7 +29,7 @@
     .loading-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -42,29 +42,29 @@
       visibility: visible;
       opacity: 1;
     }
-    /* قائمة الاقتراحات السريعة للبحث */
-    .autocomplete-items {
+    /* تنسيق قائمة الخيارات السريعة */
+    .dropdown-select-list {
       position: absolute;
-      border: 1px solid #d4d4d4;
-      border-bottom: none;
-      border-top: none;
-      z-index: 99;
       top: 100%;
       left: 0;
       right: 0;
+      z-index: 1050;
+      background: #fff;
+      border: 1px solid #ced4da;
       border-radius: 0 0 8px 8px;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      display: none;
     }
-    .autocomplete-items div {
-      padding: 10px;
+    .dropdown-select-item {
+      padding: 10px 12px;
       cursor: pointer;
-      background-color: #fff;
-      border-bottom: 1px solid #d4d4d4;
+      border-bottom: 1px solid #f1f3f5;
+      transition: background 0.15s ease;
     }
-    .autocomplete-items div:hover {
-      background-color: #e9ecef;
+    .dropdown-select-item:hover {
+      background-color: #e7f1ff;
     }
   </style>
 </head>
@@ -74,13 +74,13 @@
   <div id="loadingOverlay" class="loading-overlay">
     <div class="text-center">
       <div class="spinner-border text-primary mb-2" style="width: 3rem; height: 3rem;" role="status"></div>
-      <p class="fw-bold text-secondary">جاري جلب / تسجيل البيانات...</p>
+      <p class="fw-bold text-secondary">جاري جلب وتحديث البيانات...</p>
     </div>
   </div>
 
   <div class="container-fluid max-width-xl">
     
-    <!-- هيدر الصفحة -->
+    <!-- الهيدر الرئيسي -->
     <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-4 border-primary">
       <h3 class="m-0 text-primary fw-bold">
         <i class="bi bi-calendar-check me-2"></i>نظام متابعة الحضور والخدمة
@@ -88,56 +88,61 @@
       <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
     </header>
 
-    <!-- 0. قسم اختيار / تسجيل بيانات الخادم المشرف -->
+    <!-- 0. اختيار الخادم المشرف من القائمة -->
     <section class="card shadow-sm mb-4 border-top border-4 border-info">
       <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>بيانات الخادم / المشرف المسئول</span>
+        <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>تحديد الخادم / المشرف المسئول</span>
         <span class="badge bg-info text-dark">بيانات الأساس</span>
       </div>
       <div class="card-body bg-white">
         <div class="row g-3">
+          
+          <!-- اختيار الخادم من قائمة القوالب المسجلة -->
           <div class="col-md-4 position-relative">
-            <label class="form-label fw-bold">اسم أو كود الخادم المسئول:</label>
-            <input type="text" id="servantName" class="form-control" placeholder="ابحث بالاسم أو الكود..." autocomplete="off">
-            <div id="servantAutocompleteList" class="autocomplete-items"></div>
+            <label class="form-label fw-bold">اختر الخادم أو ابحث بالإسم/الكود:</label>
+            <input type="text" id="servantSearchInput" class="form-control" placeholder="اضغط هنا لاختيار أو كتابة اسم الخادم..." autocomplete="off">
+            <div id="servantListDropdown" class="dropdown-select-list"></div>
           </div>
+
           <div class="col-md-4">
             <label class="form-label fw-bold">الخدمة / المرحلة:</label>
-            <input type="text" id="servantRole" class="form-control" placeholder="الخدمة...">
+            <input type="text" id="servantRole" class="form-control" placeholder="الخدمة الحالية...">
           </div>
+
           <div class="col-md-4">
             <label class="form-label fw-bold">القطاع / المنطقة:</label>
-            <input type="text" id="servantSector" class="form-control" placeholder="القطاع...">
+            <input type="text" id="servantSector" class="form-control" placeholder="المنطقة / الكنيسة...">
           </div>
+
         </div>
       </div>
     </section>
 
-    <!-- 1. قسم تسجيل حضور الخدام والمخدومين مع البحث والتسجيل السريع -->
+    <!-- 1. نموذج تسجيل الحضور لاختيار الأسماء المسجلة سابقاً -->
     <section class="card shadow-sm mb-4">
       <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-person-check me-2"></i>تسجيل حضور (خدام / مخدومين)</span>
-        <small class="text-warning"><i class="bi bi-lightning-charge me-1"></i>ابحث بالكود أو الاسم للتحضير السريع</small>
+        <span><i class="bi bi-person-check me-2"></i>تسجيل حضور الخدام والمخدومين</span>
+        <span class="badge bg-warning text-dark"><i class="bi bi-search me-1"></i>اختر الاسم مباشرةً</span>
       </div>
       <div class="card-body">
         <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
           <div class="row g-3">
             
-            <!-- البحث عن اسم/كود الشخص -->
+            <!-- اختيار/البحث عن الاسم المسجل سابقاً -->
             <div class="col-md-4 position-relative">
-              <label class="form-label fw-bold">الاسم / الكود:</label>
-              <input type="text" id="personName" class="form-control" placeholder="اكتب جزء من الاسم أو الكود..." required autocomplete="off">
-              <div id="personAutocompleteList" class="autocomplete-items"></div>
+              <label class="form-label fw-bold">اختر الشخص (خادم / مخدوم):</label>
+              <input type="text" id="personSearchInput" class="form-control" placeholder="اضغط لاختيار اسم من القائمة أو ابحث..." required autocomplete="off">
+              <div id="personListDropdown" class="dropdown-select-list"></div>
             </div>
 
             <div class="col-md-3">
-              <label class="form-label fw-bold">المرحلة / الخدمة:</label>
+              <label class="form-label fw-bold">المرحلة / الصف:</label>
               <select id="personStage" class="form-select" required>
                 <option value="" selected disabled>اختر المرحلة...</option>
+                <option value="servant">خادم</option>
                 <option value="primary">ابتدائي</option>
                 <option value="prep">إعدادي</option>
                 <option value="sec">ثانوي</option>
-                <option value="servant">خادم</option>
               </select>
             </div>
 
@@ -146,7 +151,7 @@
               <input type="date" id="attendanceDate" class="form-control" required>
             </div>
 
-            <!-- خيارات الأنشطة الثلاثة -->
+            <!-- أنشطة الحضور -->
             <div class="col-md-3 d-flex align-items-end">
               <div class="d-flex gap-2 bg-light p-2 rounded w-100 justify-content-around border">
                 <div class="form-check">
@@ -166,7 +171,7 @@
 
             <div class="col-12 text-end">
               <button type="submit" class="btn btn-primary px-4 fw-bold">
-                <i class="bi bi-save me-1"></i>حفظ وتسجيل الحضور
+                <i class="bi bi-check-circle me-1"></i>تسجيل الحضور
               </button>
             </div>
           </div>
@@ -184,7 +189,6 @@
       </div>
       <div class="card-body">
         
-        <!-- أدوات تصفية التقارير -->
         <div class="row g-3 mb-4 align-items-end">
           <div class="col-md-4">
             <label for="reportDate" class="form-label fw-bold">تاريخ التقرير:</label>
@@ -193,7 +197,7 @@
           <div class="col-md-4">
             <label for="reportStage" class="form-label fw-bold">المرحلة / الصف:</label>
             <select id="reportStage" class="form-select" onchange="generateReports()">
-              <option value="all">كل المراحل والخدام</option>
+              <option value="all">الكل (خدام ومخدومين)</option>
               <option value="servant">الخدام فقط</option>
               <option value="primary">ابتدائي</option>
               <option value="prep">إعدادي</option>
@@ -207,7 +211,7 @@
           </div>
         </div>
 
-        <!-- شبكة التقارير -->
+        <!-- شبكة نتائج الحضور -->
         <div class="row g-3">
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-success">
@@ -267,9 +271,7 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
 
     let recordsData = [];
-    
-    // دليل الخدام والأشخاص المسجلين سابقاً (يتم تجميعه تلقائياً مع الكود والخدمة)
-    let knownPeopleMap = new Map();
+    let registeredPeople = new Map(); // دليل الأسماء المخزنة والمتاحة للاختيار
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -277,69 +279,75 @@
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
       
-      // استرجاع البيانات المحفوظة
-      document.getElementById('servantName').value = localStorage.getItem('servantName') || '';
+      // استرجاع بيانات الخادم المسجلة محلياً
+      document.getElementById('servantSearchInput').value = localStorage.getItem('servantName') || '';
       document.getElementById('servantRole').value = localStorage.getItem('servantRole') || '';
       document.getElementById('servantSector').value = localStorage.getItem('servantSector') || '';
 
-      setupAutocomplete();
+      bindCustomSelect('servantSearchInput', 'servantListDropdown', (item) => {
+        document.getElementById('servantSearchInput').value = item.name;
+        if (item.role) document.getElementById('servantRole').value = item.role;
+        if (item.sector) document.getElementById('servantSector').value = item.sector;
+
+        localStorage.setItem('servantName', item.name);
+        if (item.role) localStorage.setItem('servantRole', item.role);
+        if (item.sector) localStorage.setItem('servantSector', item.sector);
+      });
+
+      bindCustomSelect('personSearchInput', 'personListDropdown', (item) => {
+        document.getElementById('personSearchInput').value = item.name;
+        if (item.stage) document.getElementById('personStage').value = item.stage;
+      });
+
       fetchServerData();
     });
 
-    // إعداد التكملة التلقائية عند كتابة الاسم أو الكود
-    function setupAutocomplete() {
-      setupInputSearch('personName', 'personAutocompleteList', (selected) => {
-        document.getElementById('personName').value = selected.name;
-        if (selected.stage) document.getElementById('personStage').value = selected.stage;
-      });
-
-      setupInputSearch('servantName', 'servantAutocompleteList', (selected) => {
-        document.getElementById('servantName').value = selected.name;
-        if (selected.role) document.getElementById('servantRole').value = selected.role;
-        if (selected.sector) document.getElementById('servantSector').value = selected.sector;
-        
-        localStorage.setItem('servantName', selected.name);
-        if(selected.role) localStorage.setItem('servantRole', selected.role);
-        if(selected.sector) localStorage.setItem('servantSector', selected.sector);
-      });
-    }
-
-    function setupInputSearch(inputId, listId, onSelect) {
+    // دالة بناء وتفعيل القوائم المنسدلة للبحث الاختياري
+    function bindCustomSelect(inputId, dropdownId, onSelect) {
       const input = document.getElementById(inputId);
-      const list = document.getElementById(listId);
+      const dropdown = document.getElementById(dropdownId);
 
-      input.addEventListener('input', function() {
-        const val = this.value.trim().toLowerCase();
-        list.innerHTML = '';
-        if (!val) return;
+      const renderItems = (filterText = '') => {
+        dropdown.innerHTML = '';
+        const searchKey = filterText.trim().toLowerCase();
+        let matchesFound = 0;
 
-        let matchesCount = 0;
-        knownPeopleMap.forEach((item) => {
-          const matchName = item.name.toLowerCase().includes(val);
-          const matchCode = item.code && item.code.toLowerCase().includes(val);
-          
-          if (matchName || matchCode) {
-            matchesCount++;
-            const div = document.createElement('div');
-            div.className = 'd-flex justify-content-between align-items-center';
-            div.innerHTML = `
+        registeredPeople.forEach((person) => {
+          const nameMatch = person.name.toLowerCase().includes(searchKey);
+          const codeMatch = person.code && person.code.toLowerCase().includes(searchKey);
+
+          if (!searchKey || nameMatch || codeMatch) {
+            matchesFound++;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'dropdown-select-item d-flex justify-content-between align-items-center';
+            itemDiv.innerHTML = `
               <div>
-                <strong>${item.name}</strong> 
-                <small class="text-muted">(${item.roleOrStage || 'خادم/مخدوم'})</small>
+                <strong class="text-dark">${person.name}</strong>
+                <span class="text-muted small ms-2">(${person.stageTitle || 'خادم/مخدوم'})</span>
               </div>
-              <span class="badge bg-secondary">${item.code || 'بدون كود'}</span>
+              <span class="badge bg-light text-secondary border">${person.code}</span>
             `;
-            div.addEventListener('click', () => {
-              onSelect(item);
-              list.innerHTML = '';
+            itemDiv.addEventListener('click', () => {
+              onSelect(person);
+              dropdown.style.display = 'none';
             });
-            list.appendChild(div);
+            dropdown.appendChild(itemDiv);
           }
         });
-      });
+
+        if (matchesFound === 0) {
+          dropdown.innerHTML = `<div class="p-2 text-muted text-center small">اسم جديد (سيتم حفظه تلقائياً)</div>`;
+        }
+        dropdown.style.display = 'block';
+      };
+
+      input.addEventListener('focus', () => renderItems(input.value));
+      input.addEventListener('input', () => renderItems(input.value));
 
       document.addEventListener('click', (e) => {
-        if (e.target !== input) list.innerHTML = '';
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
       });
     }
 
@@ -357,9 +365,7 @@
           const data = await response.json();
           recordsData = data || [];
           
-          // إستخراج وبناء دليل الخدام/الأشخاص بناءً على البيانات المحفوظة
-          buildKnownPeopleIndex(recordsData);
-          
+          buildPeopleIndex(recordsData);
           generateReports();
         }
       } catch (error) {
@@ -369,17 +375,27 @@
       }
     }
 
-    function buildKnownPeopleIndex(data) {
-      knownPeopleMap.clear();
-      
-      data.forEach((item, idx) => {
+    // بناء وسجل قائمة الأسماء للاختيار السريع
+    function buildPeopleIndex(data) {
+      registeredPeople.clear();
+
+      data.forEach((item, index) => {
         if (item.name) {
-          const code = `SERV-${100 + idx}`;
-          knownPeopleMap.set(item.name, {
+          registeredPeople.set(item.name, {
             name: item.name,
-            code: item.code || code,
+            code: item.code || `CODE-${101 + index}`,
             stage: item.stage,
-            roleOrStage: getStageTitle(item.stage),
+            stageTitle: getStageTitle(item.stage),
+            role: item.servantRole,
+            sector: item.servantSector
+          });
+        }
+        if (item.servantName && !registeredPeople.has(item.servantName)) {
+          registeredPeople.set(item.servantName, {
+            name: item.servantName,
+            code: `SERV-${201 + index}`,
+            stage: 'servant',
+            stageTitle: 'خادم مشرف',
             role: item.servantRole,
             sector: item.servantSector
           });
@@ -400,15 +416,15 @@
     async function handleFormSubmit(e) {
       e.preventDefault();
 
-      const nameInput = document.getElementById('personName').value;
-      const stageInput = document.getElementById('personStage').value;
+      const nameValue = document.getElementById('personSearchInput').value.trim();
+      const stageValue = document.getElementById('personStage').value;
 
       const payload = {
-        servantName: document.getElementById('servantName').value,
+        servantName: document.getElementById('servantSearchInput').value,
         servantRole: document.getElementById('servantRole').value,
         servantSector: document.getElementById('servantSector').value,
-        name: nameInput,
-        stage: stageInput,
+        name: nameValue,
+        stage: stageValue,
         date: document.getElementById('attendanceDate').value,
         attendedMass: document.getElementById('chkMass').checked,
         attendedSundaySchool: document.getElementById('chkSundaySchool').checked,
@@ -427,12 +443,12 @@
 
         recordsData.push(payload);
         
-        // تحديث الدليل المباشر
-        knownPeopleMap.set(nameInput, {
-          name: nameInput,
-          code: `SERV-${100 + knownPeopleMap.size}`,
-          stage: stageInput,
-          roleOrStage: getStageTitle(stageInput)
+        // حفظ الاسم في الدليل المباشر لاستخدامه فوراً بدون إعادة كتابة
+        registeredPeople.set(nameValue, {
+          name: nameValue,
+          code: `CODE-${101 + registeredPeople.size}`,
+          stage: stageValue,
+          stageTitle: getStageTitle(stageValue)
         });
 
         generateReports();
