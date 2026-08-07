@@ -59,15 +59,8 @@
       font-weight: bold;
     }
 
-    .status-loading {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    .status-ready {
-      background-color: #d4edda;
-      color: #155724;
-    }
+    .status-loading { background-color: #fff3cd; color: #856404; }
+    .status-ready { background-color: #d4edda; color: #155724; }
 
     .tabs {
       display: flex;
@@ -91,9 +84,7 @@
       transition: all 0.3s ease;
     }
 
-    .tab-btn:hover {
-      background: #f0e6dd;
-    }
+    .tab-btn:hover { background: #f0e6dd; }
 
     .tab-btn.active {
       background: var(--primary-color);
@@ -101,13 +92,8 @@
       border-color: var(--primary-color);
     }
 
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     .form-group {
       margin-bottom: 18px;
@@ -122,9 +108,7 @@
       font-size: 14px;
     }
 
-    input[type="text"],
-    input[type="date"],
-    select {
+    input[type="text"], input[type="date"], select {
       width: 100%;
       padding: 11px;
       border: 1px solid var(--border-color);
@@ -135,9 +119,7 @@
       color: var(--text-color);
     }
 
-    input[type="text"]:focus,
-    input[type="date"]:focus,
-    select:focus {
+    input[type="text"]:focus, input[type="date"]:focus, select:focus {
       outline: none;
       border-color: var(--gold-color);
       background-color: #fff;
@@ -183,9 +165,7 @@
     }
 
     @media (max-width: 600px) {
-      .grid-2, .grid-3 {
-        grid-template-columns: 1fr;
-      }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
     }
 
     .btn {
@@ -202,18 +182,14 @@
       margin-top: 10px;
     }
 
-    .btn:hover {
-      background-color: var(--secondary-color);
-    }
+    .btn:hover { background-color: var(--secondary-color); }
 
     .btn-finish {
       background-color: #c0392b;
       border-color: #a93226;
     }
 
-    .btn-finish:hover {
-      background-color: #922b21;
-    }
+    .btn-finish:hover { background-color: #922b21; }
 
     .btn-reload {
       background-color: transparent;
@@ -250,18 +226,14 @@
       color: white;
     }
 
-    .report-table tr:nth-child(even) {
-      background-color: #faf6f0;
-    }
+    .report-table tr:nth-child(even) { background-color: #faf6f0; }
 
     .clickable-row {
       cursor: pointer;
       transition: background-color 0.2s;
     }
 
-    .clickable-row:hover {
-      background-color: #f0e2d3 !important;
-    }
+    .clickable-row:hover { background-color: #f0e2d3 !important; }
 
     .servants-list-container {
       margin-top: 25px;
@@ -308,18 +280,21 @@
         </div>
 
         <div class="grid-3">
+          <!-- العمود الأول: الكود -->
           <div class="form-group">
-            <label>كود الخادم:</label>
+            <label>كود الخادم (العمود 1):</label>
             <input type="text" id="servantCode" required readonly style="background: #eee5dc;">
           </div>
 
+          <!-- العمود الثاني: الاسم -->
           <div class="form-group">
-            <label>اسم الخادم:</label>
+            <label>اسم الخادم (العمود 2):</label>
             <input type="text" id="servantName" required readonly style="background: #eee5dc;">
           </div>
 
+          <!-- العمود الثالث: الخدمة أو الفصل -->
           <div class="form-group">
-            <label>الخدمة / الفصل:</label>
+            <label>الخدمة / الفصل (العمود 3):</label>
             <input type="text" id="servantService" readonly style="background: #eee5dc;" placeholder="-">
           </div>
         </div>
@@ -394,7 +369,7 @@
 
       <!-- دليل الخدام بالنقر المباشر -->
       <div class="servants-list-container">
-        <h4 style="margin: 0 0 10px 0; color: var(--primary-color);">📋 دليل الخدام المتاحين (اضغط على الاسم لاختياره مباشرة):</h4>
+        <h4 style="margin: 0 0 10px 0; color: var(--primary-color);">📋 دليل الخدام المتاحين (اضغط على الصف لاختياره):</h4>
         <div id="allServantsTableArea">⏳ جاري التحميل...</div>
       </div>
     </div>
@@ -456,11 +431,9 @@
       btn.classList.add('active');
     }
 
-    // التحميل الفوري من ذاكرة المتصفح أولاً ثم التحديث من السيرفر
     function loadAllServantsOnStart(forceRefresh = false) {
       const statusBadge = document.getElementById('loadStatus');
 
-      // 1. القراءة الفورية من Cache
       const cachedData = localStorage.getItem('cached_servants_list');
       if (cachedData && !forceRefresh) {
         try {
@@ -473,12 +446,17 @@
         }
       }
 
-      // 2. تحديث صامت في الخلفية من السيرفر
       const cbName = 'cb_load_servants_' + Date.now();
       window[cbName] = function(data) {
         if (data && Array.isArray(data) && data.length > 0) {
-          allServantsList = data;
-          localStorage.setItem('cached_servants_list', JSON.stringify(data));
+          // ضمان ضبط خريطة العناصر بالترتيب: 0: الكود, 1: الاسم, 2: الخدمة
+          allServantsList = data.map(item => ({
+            code: item.code !== undefined ? item.code : '',
+            name: item.name !== undefined ? item.name : '',
+            service: item.service !== undefined ? item.service : ''
+          }));
+
+          localStorage.setItem('cached_servants_list', JSON.stringify(allServantsList));
           statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
           statusBadge.className = "status-badge status-ready";
           renderAllServantsTable(allServantsList);
@@ -496,25 +474,29 @@
     function renderAllServantsTable(list) {
       const area = document.getElementById('allServantsTableArea');
       if (!list || list.length === 0) {
-        area.innerHTML = "<p>لا يوجد خدام مسجلين.</p>";
+        area.innerHTML = "<p style='text-align:center;'>لا يوجد خدام مسجلين.</p>";
         return;
       }
 
       let html = `<table class="report-table">
         <thead>
           <tr>
-            <th>الكود</th>
-            <th>اسم الخادم</th>
-            <th>الخدمة / الفصل</th>
+            <th>الكود (العمود 1)</th>
+            <th>اسم الخادم (العمود 2)</th>
+            <th>الخدمة / الفصل (العمود 3)</th>
           </tr>
         </thead>
         <tbody>`;
 
       list.forEach(item => {
-        html += `<tr class="clickable-row" onclick="selectServant('${item.code}', '${escapeHtml(item.name)}', '${escapeHtml(item.service || '')}')">
-          <td><b>${item.code}</b></td>
-          <td>${item.name}</td>
-          <td>${item.service || '-'}</td>
+        const safeCode = item.code ? item.code.toString().trim() : '';
+        const safeName = item.name ? item.name.toString().trim() : '';
+        const safeService = item.service ? item.service.toString().trim() : '';
+
+        html += `<tr class="clickable-row" onclick="selectServant('${safeCode}', '${escapeHtml(safeName)}', '${escapeHtml(safeService)}')">
+          <td><b>${safeCode || '-'}</b></td>
+          <td>${safeName || '-'}</td>
+          <td>${safeService || '-'}</td>
         </tr>`;
       });
 
@@ -532,7 +514,7 @@
     }
 
     function escapeHtml(text) {
-      return text ? text.replace(/'/g, "\\'") : '';
+      return text ? text.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
     }
 
     function cleanText(str) {
@@ -574,7 +556,7 @@
         list.forEach(item => {
           const div = document.createElement('div');
           div.className = 'suggestion-item';
-          div.innerText = `${item.name} (${item.code}) - ${item.service || ''}`;
+          div.innerText = `${item.name} | الكود: ${item.code} | الخدمة: ${item.service || 'غير محدد'}`;
           div.onclick = function() {
             selectServant(item.code, item.name, item.service || '');
           };
@@ -680,7 +662,7 @@
             <thead>
               <tr>
                 <th>التاريخ</th>
-                <th>الخدمة</th>
+                <th>الخدمة / الفصل</th>
                 <th>قداس</th>
                 <th>مدارس أحد</th>
                 <th>اجتماع</th>
@@ -751,7 +733,7 @@
 
           records.forEach(function(rec) {
             html += `<tr>
-              <td><b>${rec.name || ''}</b><br><small>(${rec.code || ''})</small></td>
+              <td><b>${rec.name || ''}</b><br><small>(كود: ${rec.code || ''})</small></td>
               <td>${rec.service || '-'}</td>
               <td>${rec.qaddas || '-'}</td>
               <td>${rec.sundaySchool || '-'}</td>
