@@ -19,7 +19,7 @@
       padding: 15px; 
       background-color: var(--bg-color); 
       color: #2c2c2c; 
-      max-width: 550px;
+      max-width: 650px;
       margin: 0 auto;
     }
 
@@ -53,19 +53,20 @@
       background: #eee3d3;
       border-radius: 8px;
       padding: 4px;
+      gap: 4px;
     }
 
     .tab button { 
       flex: 1;
       background: none; 
       border: none; 
-      padding: 10px; 
+      padding: 10px 5px; 
       cursor: pointer; 
       font-weight: bold; 
       color: #555; 
       border-radius: 6px;
       transition: all 0.3s ease;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .tab button.active { 
@@ -201,6 +202,30 @@
       line-height: 1.6;
     }
 
+    /* جدول التقرير اليومي الشامل */
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 12px;
+    }
+
+    .report-table th, .report-table td {
+      border: 1px solid var(--border-color);
+      padding: 8px 4px;
+      text-align: center;
+    }
+
+    .report-table th {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: bold;
+    }
+
+    .report-table tr:nth-child(even) {
+      background-color: #fdfbf7;
+    }
+
     /* تنسيق خاص للطباعة */
     @media print {
       body { background: #fff; max-width: 100%; padding: 0; }
@@ -210,6 +235,7 @@
       .header-container { background: none; color: #000; border-bottom: 2px solid #701c1c; box-shadow: none; }
       .header-container h2 { color: #000; }
       .header-icon { color: #000; }
+      .report-table th { background-color: #701c1c !important; color: #fff !important; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -221,8 +247,9 @@
   </div>
 
   <div class="tab">
-    <button class="active" onclick="openTab('add')">تسجيل حضور جديد</button>
+    <button class="active" onclick="openTab('add')">تسجيل حضور</button>
     <button onclick="openTab('search')">عرض سجل خادم</button>
+    <button onclick="openTab('report')">تقرير كل الخدام</button>
   </div>
 
   <!-- تبويب تسجيل البيانات -->
@@ -284,7 +311,7 @@
     </div>
   </div>
 
-  <!-- تبويب البحث -->
+  <!-- تبويب البحث لسجل خادم معين -->
   <div id="search" class="tab-content">
     <div class="card">
       <div class="form-group">
@@ -304,10 +331,29 @@
     </div>
   </div>
 
+  <!-- تبويب تقرير كل الخدام بالتاريخ -->
+  <div id="report" class="tab-content">
+    <div class="card">
+      <div class="form-group">
+        <label>📅 اختر التاريخ لعرض التقرير:</label>
+        <input type="date" id="reportDate">
+      </div>
+
+      <button class="btn-submit" style="background: linear-gradient(135deg, var(--secondary-color), #8c681b);" onclick="getDailyReport()">عرض تقرير كل الخدام</button>
+
+      <div id="reportResults" style="margin-top: 15px;"></div>
+
+      <button id="btnReportPrint" class="btn-print" onclick="window.print()">🖨️ طباعة التقرير / حفظ PDF</button>
+    </div>
+  </div>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHbKdg_MMWKMjl712L1W6q9EmON_FuGfWc6ojVbJ4nvzVSx9ZhS65UlmUj6_CI6r86gw/exec";
 
-    document.getElementById('entryDate').valueAsDate = new Date();
+    // ضبط تاريخ اليوم تلقائياً
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('entryDate').value = today;
+    document.getElementById('reportDate').value = today;
 
     function openTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -454,7 +500,58 @@
           </div>`;
         });
         resultsDiv.innerHTML = html;
-        printBtn.style.display = 'block'; // إظهار زر الطباعة
+        printBtn.style.display = 'block';
+      });
+    }
+
+    // دالة جلب تقرير كل الخدام بتاريخ محدد
+    function getDailyReport() {
+      var dateVal = document.getElementById('reportDate').value;
+      if (!dateVal) {
+        alert("يرجى اختيار التاريخ أولاً");
+        return;
+      }
+
+      var resultsDiv = document.getElementById('reportResults');
+      var printBtn = document.getElementById('btnReportPrint');
+      resultsDiv.innerHTML = "جاري تحميل تقرير اليوم...";
+      printBtn.style.display = 'none';
+
+      var url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}`;
+      fetchJSONP(url, 'handleDailyReportData').then(records => {
+        if(!records || records.length === 0) {
+          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات مسجلة لتاريخ: ${dateVal}</p>`;
+          return;
+        }
+
+        var html = `<h4 style="margin: 0 0 10px 0; color: var(--primary-color); text-align: center;">📊 تقرير افتقاد الخدام ليوم: ${dateVal}</h4>`;
+        html += `<table class="report-table">
+          <thead>
+            <tr>
+              <th>الخادم</th>
+              <th>قداس</th>
+              <th>مدارس أحد</th>
+              <th>اجتماع</th>
+              <th>تحضير</th>
+              <th>الكتاب المقدس</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        records.forEach(function(rec) {
+          html += `<tr>
+            <td><b>${rec.name}</b><br><small>(${rec.code})</small></td>
+            <td>${rec.qaddas}</td>
+            <td>${rec.sundaySchool}</td>
+            <td>${rec.meeting}</td>
+            <td>${rec.preparation}</td>
+            <td>${rec.bible}</td>
+          </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        resultsDiv.innerHTML = html;
+        printBtn.style.display = 'block';
       });
     }
   </script>
