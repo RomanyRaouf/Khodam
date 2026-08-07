@@ -300,7 +300,7 @@
     <!-- 2. تبويب سجل خادم معين -->
     <div id="servantReportTab" class="tab-content">
       <div class="form-group">
-        <label>ادخل كود الخادم عرض السجل:</label>
+        <label>ادخل كود الخادم لعرض السجل:</label>
         <input type="text" id="searchServantCodeInput" placeholder="مثال: 101">
       </div>
       <button onclick="getServantHistory()" class="btn">🔍 عرض سجل الخادم</button>
@@ -325,10 +325,10 @@
   </div>
 
   <script>
-    // 🔗 ضع رابط الـ Web App الخاص بـ Google Apps Script هنا
-    const SCRIPT_URL = "ضع_رابط_السكربت_الخاص_بك_هنا";
+    // 🔗 رابط السكريبت الخاص بك جاهز ومربوط مباشرة
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
-    // ضبط تاريخ اليوم تلقائياً للنماذج
+    // ضبط تاريخ اليوم تلقائياً
     document.addEventListener("DOMContentLoaded", function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('entryDate').value = today;
@@ -343,7 +343,7 @@
       btn.classList.add('active');
     }
 
-    // --- 1. البحث التلقائي عن الخدام (Autocomplete) ---
+    // --- 1. البحث التلقائي عن الخدام ---
     let searchTimeout = null;
     function onSearchServants(query) {
       clearTimeout(searchTimeout);
@@ -531,13 +531,13 @@
       addScriptTag(url, cbName);
     }
 
-    // دالة مساعدة لإنشاء عناصر <script> للاستدعاء عبر JSONP
+    // دالة مساعدة لاستدعاء البيانات (JSONP)
     function addScriptTag(url, id) {
       const script = document.createElement('script');
       script.id = id;
       script.src = url;
       script.onerror = function() {
-        alert("❌ تعذر الاتصال بالسيرفر، تأكد من صحة رابط السكريبت.");
+        alert("❌ تعذر الاتصال بالسيرفر، تأكد من صحة الرابط.");
       };
       document.body.appendChild(script);
     }
