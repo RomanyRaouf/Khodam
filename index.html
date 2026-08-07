@@ -19,7 +19,7 @@
       padding: 15px; 
       background-color: var(--bg-color); 
       color: #2c2c2c; 
-      max-width: 500px;
+      max-width: 550px;
       margin: 0 auto;
     }
 
@@ -172,6 +172,20 @@
       background: linear-gradient(135deg, #581414, var(--primary-color)); 
     }
 
+    button.btn-print {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      display: none; /* يظهر فقط عند وجود نتائج */
+    }
+
     #status { margin-top: 12px; text-align: center; font-weight: bold; font-size: 13px; color: var(--primary-color); }
 
     .record-card { 
@@ -185,6 +199,17 @@
       border-radius: 4px; 
       font-size: 13px; 
       line-height: 1.6;
+    }
+
+    /* تنسيق خاص للطباعة */
+    @media print {
+      body { background: #fff; max-width: 100%; padding: 0; }
+      .tab, .btn-submit, .btn-print, .form-group, .suggestions { display: none !important; }
+      .card { border: none; box-shadow: none; padding: 0; }
+      .record-card { page-break-inside: avoid; border: 1px solid #ccc; border-right: 4px solid #701c1c; }
+      .header-container { background: none; color: #000; border-bottom: 2px solid #701c1c; box-shadow: none; }
+      .header-container h2 { color: #000; }
+      .header-icon { color: #000; }
     }
   </style>
 </head>
@@ -269,10 +294,13 @@
       </div>
       
       <input type="hidden" id="selectedSearchCode">
+      <input type="hidden" id="selectedSearchName">
       
       <button class="btn-submit" style="background: linear-gradient(135deg, var(--accent-color), #2d5592);" onclick="searchRecords()">عرض السجل</button>
       
       <div id="searchResults" style="margin-top: 15px;"></div>
+
+      <button id="btnPrint" class="btn-print" onclick="window.print()">🖨️ طباعة التقرير / حفظ PDF</button>
     </div>
   </div>
 
@@ -358,6 +386,7 @@
 
     function selectRecordServant(code, name) {
       document.getElementById('selectedSearchCode').value = code;
+      document.getElementById('selectedSearchName').value = name;
       document.getElementById('searchRecordInput').value = `${name} (${code})`;
       document.getElementById('searchRecordSuggestions').style.display = 'none';
     }
@@ -397,13 +426,16 @@
 
     function searchRecords() {
       var code = document.getElementById('selectedSearchCode').value;
+      var name = document.getElementById('selectedSearchName').value;
       if (!code) {
         alert("يرجى اختيار خادم من البحث أولاً");
         return;
       }
 
       var resultsDiv = document.getElementById('searchResults');
+      var printBtn = document.getElementById('btnPrint');
       resultsDiv.innerHTML = "جاري البحث عن السجلات...";
+      printBtn.style.display = 'none';
 
       var url = `${SCRIPT_URL}?action=searchServantData&code=${encodeURIComponent(code)}`;
       fetchJSONP(url, 'handleRecordsData').then(records => {
@@ -411,7 +443,8 @@
           resultsDiv.innerHTML = "<p style='text-align:center; color:#777;'>لا توجد سجلات سابقة لهذا الخادم.</p>";
           return;
         }
-        var html = "";
+        
+        var html = `<h4 style="margin: 0 0 10px 0; color: var(--primary-color);">سجل الخادم: ${name} (${code})</h4>`;
         records.forEach(function(rec) {
           html += `<div class="record-card">
             <b>📅 التاريخ:</b> ${rec.date}<br>
@@ -421,6 +454,7 @@
           </div>`;
         });
         resultsDiv.innerHTML = html;
+        printBtn.style.display = 'block'; // إظهار زر الطباعة
       });
     }
   </script>
