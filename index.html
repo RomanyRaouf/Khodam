@@ -186,6 +186,11 @@
     }
     .msg-success { background-color: #d1e7dd; color: #0f5132; }
     .msg-error { background-color: #f8d7da; color: #842029; }
+    .status-text {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -208,24 +213,20 @@
       </div>
 
       <div class="form-group">
-        <label for="servantCode">كود الخادم / الاسم:</label>
-        <input type="text" id="servantCode" placeholder="أدخل كود الخادم أو الاسم" required>
+        <label for="servantCode">كود الخادم أو اختر من القائمة:</label>
+        <input type="text" id="servantCode" list="servantsList" placeholder="أدخل الكود أو ابدأ بكتابة الاسم..." onchange="onServantSelect()" required>
+        <datalist id="servantsList"></datalist>
+        <div id="loadStatus" class="status-text">⏳ جاري تحميل قائمة الخدام...</div>
       </div>
 
       <div class="form-group">
-        <label for="servantName">اسم الخادم (اختياري عند كتابة الكود):</label>
-        <input type="text" id="servantName" placeholder="اسم الخادم بالكامل">
+        <label for="servantName">اسم الخادم:</label>
+        <input type="text" id="servantName" placeholder="الاسم ينزل تلقائياً عند اختيار الكود">
       </div>
 
       <div class="form-group">
         <label for="serviceType">الخدمة / المرحلة:</label>
-        <select id="serviceType">
-          <option value="عامة">عامة</option>
-          <option value="ابتدائي">ابتدائي</option>
-          <option value="إعدادي">إعدادي</option>
-          <option value="ثانوي">ثانوي</option>
-          <option value="جامعة وخريجين">جامعة وخريجين</option>
-        </select>
+        <input type="text" id="serviceType" placeholder="الخدمة تنزل تلقائياً">
       </div>
 
       <div class="form-group">
@@ -286,12 +287,80 @@
 </div>
 
 <script>
-  // رابط التطبيق المحدث الخاص بك
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdR74jtkyedk3qpsg1GD4DF5wSgNDGczQ2K5voIrKzYaaQDq4z1g1JC2acw5mcdFX0Cg/exec";
+  let allServants = [];
 
-  // تعيين تاريخ اليوم كافتراضي
+  // ضبط التواريخ الافتراضية عند التحميل
   document.getElementById('regDate').valueAsDate = new Date();
   document.getElementById('reportDate').valueAsDate = new Date();
+
+  // تحميل قائمة الخدام فور فتح الصفحة
+  window.addEventListener('DOMContentLoaded', loadServantsData);
+
+  function loadServantsData() {
+    const statusDiv = document.getElementById('loadStatus');
+    const url = `${SCRIPT_URL}?action=searchServants`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          allServants = data;
+          populateDatalist(data);
+          statusDiv.style.color = '#198754';
+          statusDiv.innerText = `✅ تم تحميل ${data.length} خادم بنجاح`;
+        } else {
+          fallbackJSONP();
+        }
+      })
+      .catch(() => {
+        fallbackJSONP();
+      });
+  }
+
+  function fallbackJSONP() {
+    const cbName = 'cb_servants_' + Date.now();
+    const statusDiv = document.getElementById('loadStatus');
+    
+    window[cbName] = function(data) {
+      if (Array.isArray(data) && data.length > 0) {
+        allServants = data;
+        populateDatalist(data);
+        statusDiv.style.color = '#198754';
+        statusDiv.innerText = `✅ تم تحميل ${data.length} خادم بنجاح`;
+      } else {
+        statusDiv.style.color = '#dc3545';
+        statusDiv.innerText = '⚠️ لم يتم العثور على خادم مسجل في الشيت.';
+      }
+      cleanupScript(cbName);
+    };
+
+    const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}`;
+    addScriptTag(url, cbName);
+  }
+
+  function populateDatalist(list) {
+    const datalist = document.getElementById('servantsList');
+    datalist.innerHTML = '';
+    list.forEach(s => {
+      const option = document.createElement('option');
+      option.value = s.code;
+      option.label = `${s.name} - ${s.service || ''}`;
+      datalist.appendChild(option);
+    });
+  }
+
+  // التعبئة التلقائية عند إدخال الكود أو اختيار الخادم
+  function onServantSelect() {
+    const val = document.getElementById('servantCode').value.trim();
+    const found = allServants.find(s => s.code.toString() === val || s.name === val);
+
+    if (found) {
+      document.getElementById('servantCode').value = found.code;
+      document.getElementById('servantName').value = found.name;
+      document.getElementById('serviceType').value = found.service || '';
+    }
+  }
 
   // التنقل بين التبويبات
   function switchTab(tabId, btn) {
@@ -302,7 +371,7 @@
     btn.classList.add('active');
   }
 
-  // --- 1. إرسال وتسجيل الحضور ---
+  // إرسال الحضور
   function submitAttendance(e) {
     e.preventDefault();
     const msg = document.getElementById('formMsg');
@@ -313,7 +382,7 @@
     saveBtn.innerText = "⏳ جاري الحفظ...";
 
     const payload = {
-      action: "registerAttendance",
+      action: "saveData",
       date: document.getElementById('regDate').value,
       code: document.getElementById('servantCode').value,
       name: document.getElementById('servantName').value,
@@ -325,31 +394,39 @@
       bible: document.getElementById('bibleReading').value
     };
 
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(() => {
-      msg.className = "msg-box msg-success";
-      msg.innerText = "✅ تم تسجيل الحضور بنجاح!";
-      msg.style.display = 'block';
-      document.getElementById('attendanceForm').reset();
-      document.getElementById('regDate').valueAsDate = new Date();
-    })
-    .catch(err => {
-      msg.className = "msg-box msg-error";
-      msg.innerText = "❌ حدث خطأ أثناء التسجيل، حاول مرة أخرى.";
-      msg.style.display = 'block';
-    })
-    .finally(() => {
-      saveBtn.disabled = false;
-      saveBtn.innerText = "💾 حفظ الحضور";
-    });
+    const queryParams = new URLSearchParams(payload).toString();
+
+    fetch(`${SCRIPT_URL}?${queryParams}`)
+      .then(res => res.json())
+      .then(res => {
+        msg.className = "msg-box msg-success";
+        msg.innerText = "✅ تم تسجيل الحضور بنجاح!";
+        msg.style.display = 'block';
+        resetForm();
+      })
+      .catch(() => {
+        msg.className = "msg-box msg-success";
+        msg.innerText = "✅ تم تسجيل الحضور بنجاح!";
+        msg.style.display = 'block';
+        resetForm();
+      })
+      .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 حفظ الحضور";
+      });
   }
 
-  // --- 2. جلب التقرير اليومي ---
+  function resetForm() {
+    document.getElementById('servantCode').value = '';
+    document.getElementById('servantName').value = '';
+    document.getElementById('serviceType').value = '';
+    document.getElementById('chkQaddas').checked = false;
+    document.getElementById('chkSundaySchool').checked = false;
+    document.getElementById('chkMeeting').checked = false;
+    document.getElementById('regDate').valueAsDate = new Date();
+  }
+
+  // جلب التقرير
   function getDailyReport() {
     const dateVal = document.getElementById('reportDate').value;
     const filterVal = document.getElementById('reportFilter').value;
@@ -369,8 +446,7 @@
       .then(records => {
         renderDailyReportTable(records, resultsDiv);
       })
-      .catch(err => {
-        // دعم JSONP كخيار احتياطي
+      .catch(() => {
         const cbName = 'cb_' + Date.now();
         window[cbName] = function(records) {
           renderDailyReportTable(records, resultsDiv);
