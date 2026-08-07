@@ -3,740 +3,235 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام متابعة وافتقاد الخدام</title>
+  <title>نظام متابعة حضور الخدام</title>
   <style>
-    :root {
-      --primary-color: #5c1d24;
-      --secondary-color: #8b263e;
-      --gold-color: #d4af37;
-      --bg-color: #fdfaf7;
-      --card-bg: #ffffff;
-      --text-color: #2c1810;
-      --border-color: #e2d2c3;
-    }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background-color: #f4f6f9;
       margin: 0;
-      padding: 15px;
-      direction: rtl;
+      padding: 20px;
+      color: #333;
     }
-
     .container {
-      max-width: 950px;
+      max-width: 900px;
       margin: 0 auto;
-      background: var(--card-bg);
-      padding: 25px 30px;
-      border-radius: 15px;
-      box-shadow: 0 8px 25px rgba(92, 29, 36, 0.12);
-      border: 1px solid var(--border-color);
-    }
-
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid var(--gold-color);
-      padding-bottom: 12px;
-      margin-bottom: 25px;
-    }
-
-    h2 { color: var(--primary-color); margin: 0; font-size: 22px; }
-
-    .status-badge {
-      font-size: 13px;
-      padding: 5px 12px;
-      border-radius: 20px;
-      display: inline-block;
-      font-weight: bold;
-    }
-
-    .status-loading { background-color: #fff3cd; color: #856404; }
-    .status-ready { background-color: #d4edda; color: #155724; }
-    .status-error { background-color: #f8d7da; color: #721c24; }
-
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid var(--border-color);
-      margin-bottom: 25px;
-      gap: 5px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      background: #f8f4f0;
-      border: 1px solid var(--border-color);
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      font-size: 15px;
-      font-weight: bold;
-      color: var(--primary-color);
-      cursor: pointer;
-    }
-
-    .tab-btn.active {
-      background: var(--primary-color);
-      color: #ffffff;
-      border-color: var(--primary-color);
-    }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .form-group { margin-bottom: 18px; position: relative; }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: var(--primary-color);
-      font-size: 14px;
-    }
-
-    input[type="text"], input[type="date"], select {
-      width: 100%;
-      padding: 11px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 15px;
-      background-color: #faf8f5;
-    }
-
-    .suggestions {
-      position: absolute;
-      top: 100%; left: 0; right: 0;
       background: #fff;
-      border: 1px solid var(--border-color);
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 100;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
-
-    .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f4efe9; }
-    .suggestion-item:hover { background-color: #f8f1ea; font-weight: bold; }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-
-    @media (max-width: 600px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
-
-    .btn {
-      width: 100%;
-      padding: 13px;
-      background-color: var(--primary-color);
-      color: white;
-      border: 1px solid var(--gold-color);
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 25px;
+    }
+    .filter-section {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: #f8f9fa;
+      padding: 15px;
       border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
+      margin-bottom: 20px;
+      border: 1px solid #e9ecef;
     }
-
-    .btn-finish { background-color: #c0392b; border-color: #a93226; }
-
-    .btn-reload {
-      background-color: #27ae60;
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 180px;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #495057;
+    }
+    input, select, button {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #ced4da;
+      font-size: 14px;
+      outline: none;
+    }
+    button {
+      background-color: #0d6efd;
       color: white;
       border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
       cursor: pointer;
-      font-size: 13px;
       font-weight: bold;
+      transition: background-color 0.2s;
+      align-self: flex-end;
+      height: 42px;
     }
-
-    .report-table {
+    button:hover {
+      background-color: #0b5ed7;
+    }
+    table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
     }
-
-    .report-table th, .report-table td {
-      border: 1px solid var(--border-color);
+    th, td {
+      border: 1px solid #dee2e6;
       padding: 10px;
       text-align: center;
-      font-size: 14px;
+      font-size: 13px;
     }
-
-    .report-table th { background-color: var(--primary-color); color: white; }
-    .clickable-row { cursor: pointer; }
-    .clickable-row:hover { background-color: #f0e2d3 !important; }
-
-    .servants-list-container {
-      margin-top: 25px;
-      background: #fdfaf7;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 15px;
-      max-height: 350px;
-      overflow-y: auto;
+    th {
+      background-color: #0d6efd;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    .badge-present {
+      background-color: #d1e7dd;
+      color: #0f5132;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .badge-absent {
+      background-color: #f8d7da;
+      color: #842029;
+      padding: 4px 8px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="header-bar">
-      <h2>⛪ نظام متابعة وافتقاد الخدام</h2>
-      <div>
-        <span id="loadStatus" class="status-badge status-loading">⏳ جاري التحميل...</span>
-        <button class="btn-reload" onclick="forceReloadData()">🔄 تحديث مباشر</button>
-      </div>
+<div class="container">
+  <h2>📊 تقرير متابعة الخدام</h2>
+
+  <div class="filter-section">
+    <div class="form-group">
+      <label for="reportDate">اختر التاريخ:</label>
+      <input type="date" id="reportDate">
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('entryTab', this)">📝 تسجيل الحضور</button>
-      <button class="tab-btn" onclick="switchTab('servantReportTab', this)">👤 سجل خادم</button>
-      <button class="tab-btn" onclick="switchTab('dailyReportTab', this)">📊 التقارير اليومية</button>
+    <div class="form-group">
+      <label for="reportFilter">نوع التقرير / الفلترة:</label>
+      <select id="reportFilter">
+        <option value="all">📊 عرض جميع المسجلين</option>
+        <option value="qaddas">⛪ حضور القداس فقط</option>
+        <option value="sundaySchool">🏫 حضور مدارس الأحد فقط</option>
+        <option value="meeting">🤝 حضور اجتماع الخدمة فقط</option>
+        <option value="present">✅ حضور أي نشاط</option>
+        <option value="absent">❌ الغائبون بالكامل</option>
+      </select>
     </div>
 
-    <!-- 1. تسجيل الحضور -->
-    <div id="entryTab" class="tab-content active">
-      <form id="attendanceForm" onsubmit="handleSaveData(event)">
-        <div class="grid-2">
-          <div class="form-group">
-            <label>البحث السريع عن الخادم:</label>
-            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو الكود..." oninput="filterServants(this.value)" autocomplete="off">
-            <div id="suggestions" class="suggestions" style="display: none;"></div>
-          </div>
-
-          <div class="form-group">
-            <label>التاريخ:</label>
-            <input type="date" id="entryDate" required>
-          </div>
-        </div>
-
-        <div class="grid-3">
-          <div class="form-group">
-            <label>كود الخادم:</label>
-            <input type="text" id="servantCode" required readonly style="background: #eee5dc;">
-          </div>
-
-          <div class="form-group">
-            <label>اسم الخادم:</label>
-            <input type="text" id="servantName" required readonly style="background: #eee5dc;">
-          </div>
-
-          <div class="form-group">
-            <label>الخدمة / الفصل:</label>
-            <input type="text" id="servantService" readonly style="background: #eee5dc;" placeholder="-">
-          </div>
-        </div>
-
-        <hr style="margin: 18px 0; border: 0; border-top: 1px dashed var(--border-color);">
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label>القداس:</label>
-            <select id="qaddas">
-              <option value="حضر">حضر</option>
-              <option value="لم يحضر">لم يحضر</option>
-              <option value="يعتذر">يعتذر</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>مدارس الأحد:</label>
-            <select id="sundaySchool">
-              <option value="حضر">حضر</option>
-              <option value="لم يحضر">لم يحضر</option>
-              <option value="يعتذر">يعتذر</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label>اجتماع الخدمة:</label>
-            <select id="meeting">
-              <option value="حضر">حضر</option>
-              <option value="لم يحضر">لم يحضر</option>
-              <option value="يعتذر">يعتذر</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>تحضير الدرس:</label>
-            <select id="preparation">
-              <option value="تم">تم</option>
-              <option value="لم يتم">لم يتم</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="form-group">
-            <label>قراءة العهد القديم:</label>
-            <select id="oldTestament">
-              <option value="تمت القراءة">تمت القراءة</option>
-              <option value="لم تتم القراءة">لم تتم القراءة</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>قراءة العهد الجديد:</label>
-            <select id="newTestament">
-              <option value="تمت القراءة">تمت القراءة</option>
-              <option value="لم تتم القراءة">لم تتم القراءة</option>
-            </select>
-          </div>
-        </div>
-
-        <button type="submit" id="btnSave" class="btn">💾 حفظ حضور الخادم</button>
-      </form>
-
-      <hr style="margin: 25px 0; border: 0; border-top: 2px solid var(--border-color);">
-
-      <button type="button" id="btnFinish" onclick="handleFinishRegistration()" class="btn btn-finish">
-        🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)
-      </button>
-
-      <div class="servants-list-container">
-        <h4 style="margin: 0 0 10px 0; color: var(--primary-color);">📋 دليل الخدام (اضغط على أي خادم لاختياره):</h4>
-        <div id="allServantsTableArea">⏳ جاري التحميل...</div>
-      </div>
-    </div>
-
-    <!-- 2. سجل خادم معين -->
-    <div id="servantReportTab" class="tab-content">
-      <div class="form-group">
-        <label>ادخل كود الخادم لعرض السجل:</label>
-        <input type="text" id="searchServantCodeInput" placeholder="مثال: 1">
-      </div>
-      <button onclick="getServantHistory()" class="btn">🔍 عرض سجل الخادم</button>
-      <div id="servantHistoryResults" style="margin-top: 20px;"></div>
-    </div>
-
-    <!-- 3. التقارير اليومية -->
-    <div id="dailyReportTab" class="tab-content">
-      <div class="grid-2">
-        <div class="form-group">
-          <label>اختر التاريخ:</label>
-          <input type="date" id="reportDate">
-        </div>
-        <div class="form-group">
-          <label>نوع التقرير:</label>
-          <select id="reportFilter">
-            <option value="all">عرض الكل (حضور وغياب)</option>
-            <option value="absent">عرض الغائبين فقط ❌</option>
-            <option value="present">عرض الحاضرين فقط ✅</option>
-          </select>
-        </div>
-      </div>
-      
-      <button onclick="getDailyReport()" class="btn">📊 عرض التقرير</button>
-      <div id="reportResults" style="margin-top: 15px;"></div>
-    </div>
-
+    <button onclick="getDailyReport()">🔍 عرض التقرير</button>
   </div>
 
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZlf0CNXFO0Z36ifxSCmL_gqNw8bsl6-OxO25k663cVE3ALyQs0q4__s2qT1wzK1w5-Q/exec";
-    let allServantsList = [];
-    const dailyReportCache = {};
+  <div id="reportResults"></div>
+</div>
 
-    document.addEventListener("DOMContentLoaded", function() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('entryDate').value = today;
-      document.getElementById('reportDate').value = today;
+<script>
+  // الرابط الجديد الخاص بك
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdR74jtkyedk3qpsg1GD4DF5wSgNDGczQ2K5voIrKzYaaQDq4z1g1JC2acw5mcdFX0Cg/exec";
 
-      loadAllServantsOnStart();
-    });
+  // ضبط تاريخ اليوم تلقائياً
+  document.getElementById('reportDate').valueAsDate = new Date();
 
-    function switchTab(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
+  function getDailyReport() {
+    const dateVal = document.getElementById('reportDate').value;
+    const filterVal = document.getElementById('reportFilter').value;
+    const resultsDiv = document.getElementById('reportResults');
+
+    if (!dateVal) {
+      alert("يرجى اختيار التاريخ أولاً");
+      return;
     }
 
-    function forceReloadData() {
-      localStorage.removeItem('cached_servants_v5');
-      const statusBadge = document.getElementById('loadStatus');
-      statusBadge.innerText = "⏳ جاري التحديث...";
-      statusBadge.className = "status-badge status-loading";
-      fetchServantsFromNetwork();
+    resultsDiv.innerHTML = "<div style='text-align:center; padding: 20px;'>⏳ جاري تجميع بيانات التقرير...</div>";
+
+    const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(records => {
+        renderDailyReportTable(records, dateVal, resultsDiv);
+      })
+      .catch(err => {
+        // خيار احتياطي باستخدام JSONP في حالة قيود المتصفح
+        const cbName = 'cb_daily_' + Date.now();
+        window[cbName] = function(records) {
+          renderDailyReportTable(records, dateVal, resultsDiv);
+          cleanupScript(cbName);
+        };
+        addScriptTag(`${url}&callback=${cbName}`, cbName);
+      });
+  }
+
+  function renderDailyReportTable(records, dateVal, container) {
+    if (!records || records.length === 0) {
+      container.innerHTML = "<div style='text-align:center; padding: 20px; color: #6c757d;'>لا توجد بيانات مسجلة لهذا التاريخ وفقاً للفلتر المحدد.</div>";
+      return;
     }
 
-    function loadAllServantsOnStart() {
-      const statusBadge = document.getElementById('loadStatus');
-      const cached = localStorage.getItem('cached_servants_v5');
-
-      if (cached) {
-        try {
-          allServantsList = JSON.parse(cached);
-          renderAllServantsTable(allServantsList);
-          statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم)`;
-          statusBadge.className = "status-badge status-ready";
-          return;
-        } catch(e) {}
-      }
-
-      fetchServantsFromNetwork();
-    }
-
-    function fetchServantsFromNetwork() {
-      const statusBadge = document.getElementById('loadStatus');
-      const url = `${SCRIPT_URL}?action=searchServants`;
-
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
-            allServantsList = data.map(item => ({
-              code: item.code ? item.code.toString().trim() : '',
-              name: item.name ? item.name.toString().trim() : '',
-              service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
-            }));
-
-            localStorage.setItem('cached_servants_v5', JSON.stringify(allServantsList));
-            statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
-            statusBadge.className = "status-badge status-ready";
-            renderAllServantsTable(allServantsList);
-          } else {
-            fallbackJSONP();
-          }
-        })
-        .catch(err => {
-          fallbackJSONP();
-        });
-    }
-
-    function fallbackJSONP() {
-      const cbName = 'cb_servants_' + Date.now();
-      window[cbName] = function(data) {
-        if (data && Array.isArray(data)) {
-          allServantsList = data.map(item => ({
-            code: item.code ? item.code.toString().trim() : '',
-            name: item.name ? item.name.toString().trim() : '',
-            service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
-          }));
-          localStorage.setItem('cached_servants_v5', JSON.stringify(allServantsList));
-          document.getElementById('loadStatus').innerText = `✅ جاهز (${allServantsList.length} خادم)`;
-          document.getElementById('loadStatus').className = "status-badge status-ready";
-          renderAllServantsTable(allServantsList);
-        }
-        cleanupScript(cbName);
-      };
-
-      const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}`;
-      addScriptTag(url, cbName);
-    }
-
-    function renderAllServantsTable(list) {
-      const area = document.getElementById('allServantsTableArea');
-      if (!list || list.length === 0) {
-        area.innerHTML = "<p style='text-align:center;'>لا يوجد خدام مسجلين.</p>";
-        return;
-      }
-
-      let html = `<table class="report-table">
+    let html = `
+      <div style="margin-bottom: 10px; font-weight: bold; color: #495057;">
+        إجمالي النتائج: ${records.length} خادم
+      </div>
+      <table>
         <thead>
           <tr>
             <th>الكود</th>
-            <th>اسم الخادم</th>
-            <th>الخدمة / الفصل</th>
-          </tr>
-        </thead>
-        <tbody>`;
-
-      list.forEach(item => {
-        html += `<tr class="clickable-row" onclick="selectServant('${item.code}', '${escapeHtml(item.name)}', '${escapeHtml(item.service)}')">
-          <td><b>${item.code || '-'}</b></td>
-          <td>${item.name || '-'}</td>
-          <td>${item.service || '-'}</td>
-        </tr>`;
-      });
-
-      html += `</tbody></table>`;
-      area.innerHTML = html;
-    }
-
-    function selectServant(code, name, service) {
-      document.getElementById('servantCode').value = code;
-      document.getElementById('servantName').value = name;
-      document.getElementById('servantService').value = service;
-      document.getElementById('searchInput').value = name;
-      document.getElementById('suggestions').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function escapeHtml(text) {
-      return text ? text.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
-    }
-
-    function cleanText(str) {
-      if (!str) return '';
-      return str.toString().toLowerCase().trim()
-        .replace(/[أإآٱ]/g, 'ا')
-        .replace(/ة/g, 'ه')
-        .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u0652]/g, '')
-        .replace(/\s+/g, ' ');
-    }
-
-    function filterServants(query) {
-      const suggBox = document.getElementById('suggestions');
-      const cleanQ = cleanText(query);
-
-      if (!cleanQ) {
-        suggBox.style.display = 'none';
-        renderAllServantsTable(allServantsList);
-        return;
-      }
-
-      const filtered = allServantsList.filter(item => {
-        const cName = cleanText(item.name);
-        const cCode = cleanText(item.code);
-        const cService = cleanText(item.service);
-        return cName.includes(cleanQ) || cCode.includes(cleanQ) || cService.includes(cleanQ);
-      });
-
-      renderSuggestions(filtered);
-      renderAllServantsTable(filtered);
-    }
-
-    function renderSuggestions(list) {
-      const suggBox = document.getElementById('suggestions');
-      suggBox.innerHTML = '';
-
-      if (list && list.length > 0) {
-        list.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'suggestion-item';
-          div.innerText = `${item.name} (كود: ${item.code})`;
-          div.onclick = function() {
-            selectServant(item.code, item.name, item.service || '');
-          };
-          suggBox.appendChild(div);
-        });
-        suggBox.style.display = 'block';
-      } else {
-        suggBox.style.display = 'none';
-      }
-    }
-
-    function handleSaveData(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btnSave');
-      btn.disabled = true;
-      btn.innerText = "⏳ جاري الحفظ...";
-
-      const oldTest = document.getElementById('oldTestament').value;
-      const newTest = document.getElementById('newTestament').value;
-      const bibleCombined = `ع.ق: ${oldTest} | ع.ج: ${newTest}`;
-
-      const params = new URLSearchParams({
-        action: 'saveData',
-        code: document.getElementById('servantCode').value,
-        name: document.getElementById('servantName').value,
-        service: document.getElementById('servantService').value,
-        date: document.getElementById('entryDate').value,
-        qaddas: document.getElementById('qaddas').value,
-        sundaySchool: document.getElementById('sundaySchool').value,
-        meeting: document.getElementById('meeting').value,
-        preparation: document.getElementById('preparation').value,
-        bible: bibleCombined
-      });
-
-      const cbName = 'cb_save_' + Date.now();
-      window[cbName] = function(res) {
-        if (res && res.status === "success") {
-          alert("✅ تم حفظ حضور الخادم بنجاح!");
-          
-          // إفراغ كاش التقارير اليومية عند إضافة تغييرات جديدة
-          for (let key in dailyReportCache) delete dailyReportCache[key];
-
-          document.getElementById('attendanceForm').reset();
-          document.getElementById('servantService').value = '';
-          const today = new Date().toISOString().split('T')[0];
-          document.getElementById('entryDate').value = today;
-        } else {
-          alert("❌ حدث خطأ أثناء الحفظ.");
-        }
-        btn.disabled = false;
-        btn.innerText = "💾 حفظ حضور الخادم";
-        cleanupScript(cbName);
-      };
-
-      const url = `${SCRIPT_URL}?${params.toString()}&callback=${cbName}`;
-      addScriptTag(url, cbName);
-    }
-
-    function handleFinishRegistration() {
-      const selectedDate = document.getElementById('entryDate').value;
-      if (!selectedDate) {
-        alert("يرجى تحديد التاريخ أولاً!");
-        return;
-      }
-
-      if (!confirm(`هل أنت تأكد من إنهاء التسجيل لتاريخ ${selectedDate}؟\nسيتم تسجيل جميع الخدام الذين لم يسجلوا حضورهم كـ (غياب) تلقائياً.`)) {
-        return;
-      }
-
-      const btn = document.getElementById('btnFinish');
-      btn.disabled = true;
-      btn.innerText = "⏳ جاري تسجيل باقي الخدام غياب...";
-
-      const cbName = 'cb_finish_' + Date.now();
-      window[cbName] = function(res) {
-        if (res && res.status === "success") {
-          alert(`✅ تم إنهاء التسجيل بنجاح!\nتم إدراج ${res.count} خادم كـ "غياب".`);
-          
-          // إفراغ كاش التقارير اليومية لضمان قراءة الغائبين الجدد
-          for (let key in dailyReportCache) delete dailyReportCache[key];
-        } else {
-          alert("❌ حدث خطأ أثناء إنهاء التسجيل.");
-        }
-        btn.disabled = false;
-        btn.innerText = "🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)";
-        cleanupScript(cbName);
-      };
-
-      const url = `${SCRIPT_URL}?action=finishRegistration&date=${encodeURIComponent(selectedDate)}&callback=${cbName}`;
-      addScriptTag(url, cbName);
-    }
-
-    function getServantHistory() {
-      const code = document.getElementById('searchServantCodeInput').value.trim();
-      const resultsDiv = document.getElementById('servantHistoryResults');
-
-      if (!code) {
-        alert("يرجى أدخال كود الخادم");
-        return;
-      }
-
-      resultsDiv.innerHTML = "⏳ جاري تحميل السجل...";
-
-      const cbName = 'cb_servant_hist_' + Date.now();
-      window[cbName] = function(records) {
-        if (!records || records.length === 0) {
-          resultsDiv.innerHTML = "<p style='text-align:center;'>لا توجد سجلات لهذا الخادم.</p>";
-        } else {
-          let html = `<table class="report-table">
-            <thead>
-              <tr>
-                <th>التاريخ</th>
-                <th>الخدمة / الفصل</th>
-                <th>قداس</th>
-                <th>مدارس أحد</th>
-                <th>اجتماع</th>
-                <th>تحضير</th>
-                <th>الكتاب المقدس</th>
-              </tr>
-            </thead>
-            <tbody>`;
-          records.forEach(r => {
-            html += `<tr>
-              <td>${r.date}</td>
-              <td>${r.service || '-'}</td>
-              <td>${r.qaddas}</td>
-              <td>${r.sundaySchool}</td>
-              <td>${r.meeting}</td>
-              <td>${r.preparation}</td>
-              <td>${r.bible}</td>
-            </tr>`;
-          });
-          html += `</tbody></table>`;
-          resultsDiv.innerHTML = html;
-        }
-        cleanupScript(cbName);
-      };
-
-      const url = `${SCRIPT_URL}?action=searchServantData&code=${encodeURIComponent(code)}&callback=${cbName}`;
-      addScriptTag(url, cbName);
-    }
-
-    function getDailyReport() {
-      const dateVal = document.getElementById('reportDate').value;
-      const filterVal = document.getElementById('reportFilter').value;
-      const resultsDiv = document.getElementById('reportResults');
-
-      if (!dateVal) {
-        alert("يرجى اختيار التاريخ أولاً");
-        return;
-      }
-
-      const cacheKey = `${dateVal}_${filterVal}`;
-
-      // 1. استخدام الكاش المباشر عند توفره
-      if (dailyReportCache[cacheKey]) {
-        renderDailyReportTable(dailyReportCache[cacheKey], dateVal, resultsDiv);
-        return;
-      }
-
-      resultsDiv.innerHTML = "<div style='text-align:center; padding: 20px;'>⚡ جاري إعداد التقرير بسرعة...</div>";
-
-      const cbName = 'cb_daily_' + Date.now();
-
-      window[cbName] = function(records) {
-        if (records && Array.isArray(records)) {
-          dailyReportCache[cacheKey] = records;
-          renderDailyReportTable(records, dateVal, resultsDiv);
-        } else {
-          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
-        }
-        cleanupScript(cbName);
-      };
-
-      const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}&callback=${cbName}`;
-      addScriptTag(url, cbName);
-    }
-
-    function renderDailyReportTable(records, dateVal, resultsDiv) {
-      if (!records || records.length === 0) {
-        resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
-        return;
-      }
-
-      let html = `<table class="report-table">
-        <thead>
-          <tr>
-            <th>الخادم</th>
+            <th>الاسم</th>
             <th>الخدمة</th>
-            <th>قداس</th>
-            <th>مدارس أحد</th>
-            <th>اجتماع</th>
-            <th>تحضير</th>
-            <th>الكتاب المقدس</th>
+            <th>القداس</th>
+            <th>مدارس الأحد</th>
+            <th>الاجتماع</th>
+            <th>التحضير</th>
+            <th>القراءة</th>
           </tr>
         </thead>
-        <tbody>`;
+        <tbody>
+    `;
 
-      records.forEach(function(rec) {
-        html += `<tr>
-          <td><b>${rec.name || ''}</b><br><small>(كود: ${rec.code || ''})</small></td>
-          <td>${rec.service || '-'}</td>
-          <td>${rec.qaddas || '-'}</td>
-          <td>${rec.sundaySchool || '-'}</td>
-          <td>${rec.meeting || '-'}</td>
-          <td>${rec.preparation || '-'}</td>
-          <td>${rec.bible || '-'}</td>
-        </tr>`;
-      });
+    records.forEach(row => {
+      html += `
+        <tr>
+          <td>${row.code || '-'}</td>
+          <td style="text-align: right; font-weight: bold;">${row.name || '-'}</td>
+          <td>${row.service || '-'}</td>
+          <td>${formatBadge(row.qaddas)}</td>
+          <td>${formatBadge(row.sundaySchool)}</td>
+          <td>${formatBadge(row.meeting)}</td>
+          <td>${row.preparation || '-'}</td>
+          <td>${row.bible || '-'}</td>
+        </tr>
+      `;
+    });
 
-      html += `</tbody></table>`;
-      resultsDiv.innerHTML = html;
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+  }
+
+  function formatBadge(status) {
+    if (!status || status === "لم يحضر") {
+      return `<span class="badge-absent">لم يحضر</span>`;
     }
+    return `<span class="badge-present">${status}</span>`;
+  }
 
-    function addScriptTag(url, id) {
-      cleanupScript(id);
-      const script = document.createElement('script');
-      script.id = id;
-      script.src = url;
-      document.body.appendChild(script);
-    }
+  function addScriptTag(url, cbName) {
+    const script = document.createElement('script');
+    script.src = url;
+    script.id = cbName;
+    document.body.appendChild(script);
+  }
 
-    function cleanupScript(id) {
-      delete window[id];
-      const elem = document.getElementById(id);
-      if (elem) elem.remove();
-    }
-  </script>
+  function cleanupScript(cbName) {
+    const script = document.getElementById(cbName);
+    if (script) script.remove();
+    delete window[cbName];
+  }
+</script>
+
 </body>
 </html>
