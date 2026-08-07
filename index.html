@@ -146,6 +146,24 @@
       font-weight: bold;
     }
 
+    .status-badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 5px;
+      margin-right: 8px;
+      display: inline-block;
+    }
+
+    .status-loading {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-ready {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -254,7 +272,10 @@
       <form id="attendanceForm" onsubmit="handleSaveData(event)">
         <div class="grid-2">
           <div class="form-group">
-            <label>البحث / اكتب اسم الخادم أو الكود:</label>
+            <label>
+              البحث / اكتب اسم الخادم أو الكود:
+              <span id="loadStatus" class="status-badge status-loading">⏳ جاري تحميل القائمة...</span>
+            </label>
             <input type="text" id="searchInput" placeholder="ابحث بأي جزء من الاسم..." oninput="filterServants(this.value)" autocomplete="off">
             <div id="suggestions" class="suggestions" style="display: none;"></div>
           </div>
@@ -386,8 +407,7 @@
   </div>
 
   <script>
-    // تم إضافة رابط السكريبت الخاص بك هنا مباشرةً
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9hWVMisFjGnfzjPyiORQu7Mqbkq_ASwZqX2OAzHCfSNYSyET2JrpFaJcBDmWcswmkQw/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3-2xTOxYoIuoRqsOxaap0NmxMkmJX8kB9xAmzdpePWXtQj0bSgi1E8vZ59GhiRd-dzQ/exec";
 
     let allServantsList = [];
 
@@ -396,7 +416,8 @@
       document.getElementById('entryDate').value = today;
       document.getElementById('reportDate').value = today;
 
-      loadAllServants();
+      // بدء تحميل كامل أسماء وأكواد الخدام فور فتح الصفحة
+      loadAllServantsOnStart();
     });
 
     function switchTab(tabId, btn) {
@@ -406,27 +427,40 @@
       btn.classList.add('active');
     }
 
-    function loadAllServants() {
+    // 1. تحميل قائمة الخدام بالكامل في البداية
+    function loadAllServantsOnStart() {
+      const statusBadge = document.getElementById('loadStatus');
       const cbName = 'cb_load_servants_' + Date.now();
+      
       window[cbName] = function(data) {
         if (data && Array.isArray(data)) {
           allServantsList = data;
+          statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
+          statusBadge.className = "status-badge status-ready";
+        } else {
+          statusBadge.innerText = "❌ تعذر التحميل";
         }
         cleanupScript(cbName);
       };
-      const url = `${SCRIPT_URL}?action=searchServants&query=&callback=${cbName}`;
+
+      const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}`;
       addScriptTag(url, cbName);
     }
 
+    // 2. دالة تنظيف النص العربي للبحث المرن
     function cleanText(str) {
       if (!str) return '';
-      return str.toString().toLowerCase().trim()
+      return str.toString()
+        .toLowerCase()
+        .trim()
         .replace(/[أإآٱ]/g, 'ا')
         .replace(/ة/g, 'ه')
         .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u0652]/g, '');
+        .replace(/[\u064B-\u0652]/g, '')
+        .replace(/\s+/g, ' ');
     }
 
+    // 3. الفلترة المباشرة داخل المتصفح من القائمة المحملة
     function filterServants(query) {
       const suggBox = document.getElementById('suggestions');
       const cleanQ = cleanText(query);
@@ -436,28 +470,14 @@
         return;
       }
 
-      if (allServantsList.length === 0) {
-        fetchDirectSearch(query);
-        return;
-      }
-
+      // البحث في القائمة المحملة مسبقاً
       const filtered = allServantsList.filter(item => {
-        return cleanText(item.name).includes(cleanQ) || cleanText(item.code).includes(cleanQ);
+        const cName = cleanText(item.name);
+        const cCode = cleanText(item.code);
+        return cName.includes(cleanQ) || cCode.includes(cleanQ);
       });
 
       renderSuggestions(filtered);
-    }
-
-    function fetchDirectSearch(query) {
-      const cbName = 'cb_direct_search_' + Date.now();
-      window[cbName] = function(data) {
-        if (data && Array.isArray(data)) {
-          renderSuggestions(data);
-        }
-        cleanupScript(cbName);
-      };
-      const url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(query)}&callback=${cbName}`;
-      addScriptTag(url, cbName);
     }
 
     function renderSuggestions(list) {
