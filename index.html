@@ -3,121 +3,280 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>متابعة الخدام</title>
+  <title>متابعة افتقاد الخدام</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 12px; background-color: #f8f9fa; color: #333; }
-    h3 { text-align: center; color: #2c3e50; margin-bottom: 15px; }
-    .tab { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 2px solid #ccc; }
-    .tab button { background: none; border: none; padding: 8px 12px; cursor: pointer; font-weight: bold; color: #666; }
-    .tab button.active { color: #007bff; border-bottom: 3px solid #007bff; }
+    :root {
+      --primary-color: #701c1c; /* نبيتي كنسي */
+      --secondary-color: #b38728; /* ذهبي عتيق */
+      --accent-color: #1b3b6f; /* أزرق ملكي */
+      --bg-color: #fcfbf7; /* خلفية بيج دافئة */
+      --card-bg: #ffffff;
+      --border-color: #e2d8c3;
+    }
+
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 15px; 
+      background-color: var(--bg-color); 
+      color: #2c2c2c; 
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .header-container {
+      text-align: center;
+      background: linear-gradient(135deg, #581414, var(--primary-color));
+      color: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      border-bottom: 4px solid var(--secondary-color);
+      margin-bottom: 20px;
+    }
+
+    .header-container h2 {
+      margin: 5px 0 0 0;
+      font-size: 20px;
+      font-weight: bold;
+      color: #f8f1e5;
+    }
+
+    .header-icon {
+      font-size: 24px;
+      color: var(--secondary-color);
+    }
+
+    .tab { 
+      display: flex; 
+      justify-content: space-around; 
+      margin-bottom: 20px; 
+      background: #eee3d3;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .tab button { 
+      flex: 1;
+      background: none; 
+      border: none; 
+      padding: 10px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      color: #555; 
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .tab button.active { 
+      background-color: var(--primary-color); 
+      color: #fff; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .form-group { margin-bottom: 10px; position: relative; }
-    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-    input[type="text"], input[type="date"], select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    
-    .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; z-index: 1000; max-height: 150px; overflow-y: auto; border-radius: 0 0 4px 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .suggestion-item { padding: 8px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
-    .suggestion-item:hover { background-color: #e9ecef; }
-    
-    .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #e0e0e0; }
-    .checkbox-group label { margin: 0; font-size: 13px; font-weight: normal; }
-    
-    .bible-options { background: #fff; padding: 8px 10px; border-radius: 4px; border: 1px solid #e0e0e0; margin-bottom: 8px; }
-    .bible-options-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
-    .bible-checkboxes { display: flex; gap: 15px; font-size: 13px; }
-    .bible-checkboxes label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 
-    button.btn-submit { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    button.btn-submit:hover { background-color: #218838; }
-    #status { margin-top: 10px; text-align: center; font-weight: bold; font-size: 12px; }
-    .record-card { background: white; border: 1px solid #ddd; padding: 8px; margin-bottom: 8px; border-radius: 4px; font-size: 12px; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .form-group { margin-bottom: 12px; position: relative; }
+    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #444; }
+    
+    input[type="text"], input[type="date"], select { 
+      width: 100%; 
+      padding: 9px; 
+      border: 1px solid var(--border-color); 
+      border-radius: 6px; 
+      box-sizing: border-box; 
+      font-size: 14px;
+      background-color: #fafafa;
+    }
+
+    input[type="text"]:focus, select:focus, input[type="date"]:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 5px rgba(179, 135, 40, 0.4);
+    }
+
+    .suggestions { 
+      position: absolute; 
+      top: 100%; 
+      left: 0; 
+      right: 0; 
+      background: white; 
+      border: 1px solid var(--secondary-color); 
+      border-top: none; 
+      z-index: 1000; 
+      max-height: 160px; 
+      overflow-y: auto; 
+      border-radius: 0 0 6px 6px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
+    }
+
+    .suggestion-item { 
+      padding: 10px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      border-bottom: 1px solid #f0f0f0; 
+    }
+
+    .suggestion-item:hover { background-color: #fdf8ed; color: var(--primary-color); }
+
+    .checkbox-group { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      margin-bottom: 10px; 
+      background: #fdfbf7; 
+      padding: 8px 12px; 
+      border-radius: 6px; 
+      border: 1px solid var(--border-color); 
+    }
+
+    .checkbox-group label { margin: 0; font-size: 13px; font-weight: 600; color: #333; }
+
+    .bible-options { 
+      background: #fdfbf7; 
+      padding: 10px 12px; 
+      border-radius: 6px; 
+      border: 1px solid var(--border-color); 
+      margin-bottom: 12px; 
+    }
+
+    .bible-options-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--primary-color); }
+    .bible-checkboxes { display: flex; gap: 20px; font-size: 13px; }
+    .bible-checkboxes label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+    button.btn-submit { 
+      width: 100%; 
+      padding: 11px; 
+      background: linear-gradient(135deg, var(--primary-color), #8a2323); 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      font-size: 15px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      margin-top: 10px; 
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+
+    button.btn-submit:hover { 
+      background: linear-gradient(135deg, #581414, var(--primary-color)); 
+    }
+
+    #status { margin-top: 12px; text-align: center; font-weight: bold; font-size: 13px; color: var(--primary-color); }
+
+    .record-card { 
+      background: white; 
+      border-right: 4px solid var(--secondary-color); 
+      border-top: 1px solid var(--border-color);
+      border-left: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 12px; 
+      margin-bottom: 10px; 
+      border-radius: 4px; 
+      font-size: 13px; 
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
 
-  <h3>متابعة الخدام</h3>
+  <div class="header-container">
+    <div class="header-icon">☦️</div>
+    <h2>استمارة متابعة الخدام</h2>
+  </div>
 
   <div class="tab">
-    <button class="active" onclick="openTab('add')">تسجيل جديد</button>
-    <button onclick="openTab('search')">سجل الخادم</button>
+    <button class="active" onclick="openTab('add')">تسجيل حضور جديد</button>
+    <button onclick="openTab('search')">عرض سجل خادم</button>
   </div>
 
   <!-- تبويب تسجيل البيانات -->
   <div id="add" class="tab-content active">
-    <div class="form-group">
-      <label>بحث بالكود أو الاسم:</label>
-      <input type="text" id="searchInput" oninput="onSearchInput(this.value)" placeholder="اكتب جزء من الاسم أو الكود..." autocomplete="off">
-      <div id="suggestionsBox" class="suggestions" style="display: none;"></div>
-    </div>
-
-    <div class="form-group">
-      <label>كود الخادم:</label>
-      <input type="text" id="servantCode" readonly placeholder="سيظهر الكود تلقائياً" style="background-color: #e9ecef;">
-    </div>
-
-    <div class="form-group">
-      <label>اسم الخادم:</label>
-      <input type="text" id="servantName" readonly placeholder="سيظهر الاسم تلقائياً" style="background-color: #e9ecef;">
-    </div>
-
-    <div class="form-group">
-      <label>التاريخ:</label>
-      <input type="date" id="entryDate">
-    </div>
-
-    <hr style="margin: 15px 0;">
-
-    <div class="checkbox-group">
-      <label>حضور قداس:</label>
-      <select id="qaddas"><option value="نعم">نعم</option><option value="لا">لا</option></select>
-    </div>
-
-    <div class="checkbox-group">
-      <label>حضور مدارس أحد:</label>
-      <select id="sundaySchool"><option value="نعم">نعم</option><option value="لا">لا</option></select>
-    </div>
-
-    <div class="checkbox-group">
-      <label>حضور إجتماع خدمة:</label>
-      <select id="meeting"><option value="نعم">نعم</option><option value="لا">لا</option></select>
-    </div>
-
-    <div class="checkbox-group">
-      <label>تحضير:</label>
-      <select id="preparation"><option value="نعم">نعم</option><option value="لا">لا</option></select>
-    </div>
-
-    <!-- كتاب مقدس مع إمكانية تحديد عهد قديم وعهد جديد معاً -->
-    <div class="bible-options">
-      <div class="bible-options-title">كتاب مقدس:</div>
-      <div class="bible-checkboxes">
-        <label><input type="checkbox" id="bibleOld" value="عهد قديم"> عهد قديم</label>
-        <label><input type="checkbox" id="bibleNew" value="عهد جديد"> عهد جديد</label>
+    <div class="card">
+      <div class="form-group">
+        <label>🔍 بحث بالاسم أو الكود:</label>
+        <input type="text" id="searchInput" oninput="onSearchInput(this.value)" placeholder="اكتب الاسم أو الكود..." autocomplete="off">
+        <div id="suggestionsBox" class="suggestions" style="display: none;"></div>
       </div>
-    </div>
 
-    <button class="btn-submit" onclick="submitForm()">حفظ البيانات</button>
-    <div id="status"></div>
+      <div class="form-group">
+        <label>كود الخادم:</label>
+        <input type="text" id="servantCode" readonly placeholder="سيظهر تلقائياً" style="background-color: #f0f0f0;">
+      </div>
+
+      <div class="form-group">
+        <label>اسم الخادم:</label>
+        <input type="text" id="servantName" readonly placeholder="سيظهر تلقائياً" style="background-color: #f0f0f0;">
+      </div>
+
+      <div class="form-group">
+        <label>التاريخ:</label>
+        <input type="date" id="entryDate">
+      </div>
+
+      <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 15px 0;">
+
+      <div class="checkbox-group">
+        <label>حضور قداس:</label>
+        <select id="qaddas"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+      </div>
+
+      <div class="checkbox-group">
+        <label>حضور مدارس أحد:</label>
+        <select id="sundaySchool"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+      </div>
+
+      <div class="checkbox-group">
+        <label>حضور إجتماع خدمة:</label>
+        <select id="meeting"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+      </div>
+
+      <div class="checkbox-group">
+        <label>تحضير الدرس:</label>
+        <select id="preparation"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+      </div>
+
+      <div class="bible-options">
+        <div class="bible-options-title">قراءة الكتاب المقدس:</div>
+        <div class="bible-checkboxes">
+          <label><input type="checkbox" id="bibleOld" value="عهد قديم"> عهد قديم</label>
+          <label><input type="checkbox" id="bibleNew" value="عهد جديد"> عهد جديد</label>
+        </div>
+      </div>
+
+      <button class="btn-submit" onclick="submitForm()">حفظ البيانات</button>
+      <div id="status"></div>
+    </div>
   </div>
 
   <!-- تبويب البحث -->
   <div id="search" class="tab-content">
-    <div class="form-group">
-      <label>بحث بالاسم أو الكود لمشاهدة السجل:</label>
-      <input type="text" id="searchRecordInput" oninput="onSearchRecordInput(this.value)" placeholder="اكتب جزء من الاسم أو الكود..." autocomplete="off">
-      <div id="searchRecordSuggestions" class="suggestions" style="display: none;"></div>
+    <div class="card">
+      <div class="form-group">
+        <label>🔍 ابحث لمشاهدة السجل الكامل:</label>
+        <input type="text" id="searchRecordInput" oninput="onSearchRecordInput(this.value)" placeholder="اكتب الاسم أو الكود..." autocomplete="off">
+        <div id="searchRecordSuggestions" class="suggestions" style="display: none;"></div>
+      </div>
+      
+      <input type="hidden" id="selectedSearchCode">
+      
+      <button class="btn-submit" style="background: linear-gradient(135deg, var(--accent-color), #2d5592);" onclick="searchRecords()">عرض السجل</button>
+      
+      <div id="searchResults" style="margin-top: 15px;"></div>
     </div>
-    
-    <input type="hidden" id="selectedSearchCode">
-    
-    <button class="btn-submit" style="background-color: #007bff;" onclick="searchRecords()">عرض السجل الكامل</button>
-    
-    <div id="searchResults" style="margin-top: 15px;"></div>
   </div>
 
   <script>
-    // الرابط المحدث بعد الدبلوي
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHbKdg_MMWKMjl712L1W6q9EmON_FuGfWc6ojVbJ4nvzVSx9ZhS65UlmUj6_CI6r86gw/exec";
 
     document.getElementById('entryDate').valueAsDate = new Date();
@@ -216,7 +375,7 @@
       if (document.getElementById('bibleNew').checked) bibleSelected.push("عهد جديد");
       var bibleValue = bibleSelected.length > 0 ? bibleSelected.join(" + ") : "لا يوجد";
 
-      document.getElementById('status').innerText = "جاري الحفظ...";
+      document.getElementById('status').innerText = "جاري حفظ البيانات...";
 
       var params = `action=saveData&code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}` +
                    `&date=${encodeURIComponent(document.getElementById('entryDate').value)}` +
@@ -227,7 +386,7 @@
                    `&bible=${encodeURIComponent(bibleValue)}`;
 
       fetchJSONP(`${SCRIPT_URL}?${params}`, 'handleSaveResponse').then(res => {
-        document.getElementById('status').innerText = "تم حفظ البيانات بنجاح!";
+        document.getElementById('status').innerText = "✨ تم حفظ البيانات بنجاح!";
         document.getElementById('servantCode').value = '';
         document.getElementById('servantName').value = '';
         document.getElementById('searchInput').value = '';
@@ -244,21 +403,21 @@
       }
 
       var resultsDiv = document.getElementById('searchResults');
-      resultsDiv.innerHTML = "جاري البحث...";
+      resultsDiv.innerHTML = "جاري البحث عن السجلات...";
 
       var url = `${SCRIPT_URL}?action=searchServantData&code=${encodeURIComponent(code)}`;
       fetchJSONP(url, 'handleRecordsData').then(records => {
         if(!records || records.length === 0) {
-          resultsDiv.innerHTML = "<p style='text-align:center;'>لا توجد سجلات لهذا الخادم.</p>";
+          resultsDiv.innerHTML = "<p style='text-align:center; color:#777;'>لا توجد سجلات سابقة لهذا الخادم.</p>";
           return;
         }
         var html = "";
         records.forEach(function(rec) {
           html += `<div class="record-card">
-            <b>التاريخ:</b> ${rec.date}<br>
-            <b>قداس:</b> ${rec.qaddas} | <b>مدارس أحد:</b> ${rec.sundaySchool}<br>
-            <b>اجتماع خدمة:</b> ${rec.meeting}<br>
-            <b>تحضير:</b> ${rec.preparation} | <b>كتاب مقدس:</b> ${rec.bible}
+            <b>📅 التاريخ:</b> ${rec.date}<br>
+            <b>✝️ قداس:</b> ${rec.qaddas} | <b>🏫 مدارس أحد:</b> ${rec.sundaySchool}<br>
+            <b>🤝 اجتماع خدمة:</b> ${rec.meeting}<br>
+            <b>📝 تحضير:</b> ${rec.preparation} | <b>📖 كتاب مقدس:</b> ${rec.bible}
           </div>`;
         });
         resultsDiv.innerHTML = html;
