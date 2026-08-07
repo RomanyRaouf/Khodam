@@ -285,12 +285,23 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>قراءة الكتاب المقدس:</label>
-          <select id="bible">
-            <option value="منتظم">منتظم</option>
-            <option value="غير منتظم">غير منتظم</option>
-          </select>
+        <!-- الجزء المعدل لتحديد العهد القديم والعهد الجديد -->
+        <div class="grid-2">
+          <div class="form-group">
+            <label>قراءة العهد القديم:</label>
+            <select id="oldTestament">
+              <option value="تمت القراءة">تمت القراءة</option>
+              <option value="لم تتم القراءة">لم تتم القراءة</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>قراءة العهد الجديد:</label>
+            <select id="newTestament">
+              <option value="تمت القراءة">تمت القراءة</option>
+              <option value="لم تتم القراءة">لم تتم القراءة</option>
+            </select>
+          </div>
         </div>
 
         <button type="submit" id="btnSave" class="btn">💾 حفظ البيانات</button>
@@ -325,7 +336,6 @@
   </div>
 
   <script>
-    // 🔗 رابط السكريبت الخاص بك جاهز ومربوط مباشرة
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
     // ضبط تاريخ اليوم تلقائياً
@@ -391,6 +401,11 @@
       btn.disabled = true;
       btn.innerText = "⏳ جاري الحفظ...";
 
+      // نرسل العهد القديم والجديد منفصلين أو مجتمعين بحسب ترتيب شيت جوجل
+      const oldTest = document.getElementById('oldTestament').value;
+      const newTest = document.getElementById('newTestament').value;
+      const bibleCombined = `ع.ق: ${oldTest} | ع.ج: ${newTest}`;
+
       const params = new URLSearchParams({
         action: 'saveData',
         code: document.getElementById('servantCode').value,
@@ -400,7 +415,7 @@
         sundaySchool: document.getElementById('sundaySchool').value,
         meeting: document.getElementById('meeting').value,
         preparation: document.getElementById('preparation').value,
-        bible: document.getElementById('bible').value
+        bible: bibleCombined
       });
 
       const cbName = 'cb_save_' + Date.now();
@@ -448,7 +463,7 @@
                 <th>مدارس أحد</th>
                 <th>اجتماع</th>
                 <th>تحضير</th>
-                <th>كتاب مقدس</th>
+                <th>الكتاب المقدس</th>
               </tr>
             </thead>
             <tbody>`;
@@ -531,7 +546,6 @@
       addScriptTag(url, cbName);
     }
 
-    // دالة مساعدة لاستدعاء البيانات (JSONP)
     function addScriptTag(url, id) {
       const script = document.createElement('script');
       script.id = id;
