@@ -1,525 +1,97 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منظومة متابعة وحضور الخدام</title>
-    <!-- CSS Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <!-- FontAwesome للأيقونات -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Tajawal) -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-        .main-card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            background: #fff;
-        }
-        .card-header-custom {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 20px;
-        }
-        .nav-pills .nav-link {
-            color: rgba(255,255,255,0.8);
-            border-radius: 20px;
-            padding: 8px 20px;
-            margin: 0 5px;
-            font-weight: 500;
-        }
-        .nav-pills .nav-link.active {
-            background-color: #ffffff;
-            color: #1e3c72;
-            font-weight: bold;
-        }
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 10px 15px;
-            border: 1px solid #ced4da;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #2a5298;
-            box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.25);
-        }
-        .btn-custom {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        .btn-custom:hover {
-            opacity: 0.95;
-            color: white;
-            transform: translateY(-1px);
-        }
-        .servant-result-item {
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .servant-result-item:hover {
-            background-color: #e9ecef;
-        }
-        .spinner-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .table-custom th {
-            background-color: #2a5298;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- مؤشر التحميل -->
-    <div id="loadingSpinner" class="spinner-overlay d-none">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">جاري التحميل...</span>
-        </div>
+<!-- قسم التقارير والتصدير -->
+<section id="reportsSection" class="card shadow-sm mb-4">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والتصدير</h5>
+    <button class="btn btn-light btn-sm" onclick="exportToExcel()">
+      <i class="bi bi-file-earmark-excel text-success me-1"></i>تصدير إلى Excel
+    </button>
+  </div>
+  <div class="card-body">
+    <!-- شريط تصفية وتحديد التاريخ/الفترة -->
+    <div class="row g-3 mb-4 align-items-end">
+      <div class="col-md-4">
+        <label for="reportDate" class="form-label fw-bold">اختر التاريخ:</label>
+        <input type="date" id="reportDate" class="form-control" onchange="generateReports()">
+      </div>
+      <div class="col-md-4">
+        <label for="reportStage" class="form-label fw-bold">المرحلة / الصف:</label>
+        <select id="reportStage" class="form-select" onchange="generateReports()">
+          <option value="all">كل المراحل</option>
+          <option value="primary">ابتدائي</option>
+          <option value="prep">إعدادي</option>
+          <option value="sec">ثانوي</option>
+        </select>
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-outline-primary w-100" onclick="generateReports()">
+          <i class="bi bi-arrow-clockwise me-1"></i>تحديث التقارير
+        </button>
+      </div>
     </div>
 
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card main-card">
-                    <!-- الهيدر مع تبويبات التنقل -->
-                    <div class="card-header-custom text-center">
-                        <h3 class="mb-3"><i class="fa-solid fa-clipboard-user me-2"></i>منظومة متابعة وحضور الخدام</h3>
-                        <ul class="nav nav-pills justify-content-center" id="mainTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab">
-                                    <i class="fa-solid fa-pen-to-square me-1"></i> تسجيل الحضور
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports-panel" type="button" role="tab" onclick="loadReports()">
-                                    <i class="fa-solid fa-chart-line me-1"></i> سجل التقارير
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="card-body p-4">
-
-                        <!-- حالة الاتصال والتنبيهات -->
-                        <div id="statusAlert" class="alert d-none" role="alert"></div>
-
-                        <div class="tab-content" id="mainTabsContent">
-                            
-                            <!-- ==================== 1. تبويب تسجيل الحضور ==================== -->
-                            <div class="tab-pane fade show active" id="register-panel" role="tabpanel">
-                                <!-- البحث عن خادم أو إضافته -->
-                                <div class="mb-4 position-relative">
-                                    <label class="form-label fw-bold"><i class="fa-solid fa-magnifying-glass me-1"></i> البحث عن خادم (بالاسم أو الكود):</label>
-                                    <div class="input-group">
-                                        <input type="text" id="servantSearchInput" class="form-control" placeholder="اكتب اسم الخادم أو الكود..." autocomplete="off">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="clearSelection()">تفريغ</button>
-                                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addServantModal">
-                                            <i class="fa-solid fa-user-plus"></i> إضافة خادم
-                                        </button>
-                                    </div>
-                                    <!-- قائمة اقتراحات البحث -->
-                                    <ul id="searchResults" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1000; max-height: 200px; overflow-y: auto;"></ul>
-                                </div>
-
-                                <!-- نموذج تسجيل الحضور -->
-                                <form id="attendanceForm">
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold">كود الخادم</label>
-                                            <input type="text" id="servantCode" class="form-control" readonly required placeholder="يملأ تلقائياً">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold">اسم الخادم</label>
-                                            <input type="text" id="servantName" class="form-control" readonly required placeholder="يملأ تلقائياً">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold">الخدمة / المرحلة</label>
-                                            <input type="text" id="servantService" class="form-control" readonly placeholder="يملأ تلقائياً">
-                                        </div>
-                                    </div>
-
-                                    <hr class="my-4">
-
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold"><i class="fa-regular fa-calendar-days me-1"></i> التاريخ:</label>
-                                        <input type="date" id="attendanceDate" class="form-control" required>
-                                    </div>
-
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">القداس الإلهي</label>
-                                            <select id="qaddas" class="form-select">
-                                                <option value="حضر">حضر</option>
-                                                <option value="تناول">حضر وتناول</option>
-                                                <option value="لم يحضر">لم يحضر</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">مدارس الأحد / الخدمة</label>
-                                            <select id="sundaySchool" class="form-select">
-                                                <option value="حضر">حضر</option>
-                                                <option value="اعتذار">اعتذار</option>
-                                                <option value="غائب">غائب</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">اجتماع الخدام</label>
-                                            <select id="meeting" class="form-select">
-                                                <option value="حضر">حضر</option>
-                                                <option value="اعتذار">اعتذار</option>
-                                                <option value="غائب">غائب</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">تحضير الدرس</label>
-                                            <select id="preparation" class="form-select">
-                                                <option value="تم التحضير">تم التحضير</option>
-                                                <option value="لم يتم">لم يتم</option>
-                                                <option value="غير مطبق">غير مطبق</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label fw-bold">متابعة قراءة الكتاب المقدس</label>
-                                        <select id="bible" class="form-select">
-                                            <option value="منتظم">منتظم</option>
-                                            <option value="غير منتظم">غير منتظم</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-custom btn-lg">
-                                            <i class="fa-solid fa-floppy-disk me-1"></i> حفظ البيانات
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <!-- ==================== 2. تبويب شاشة التقارير ==================== -->
-                            <div class="tab-pane fade" id="reports-panel" role="tabpanel">
-                                <div class="row g-3 mb-3 align-items-end">
-                                    <div class="col-md-8">
-                                        <label class="form-label fw-bold">تصفية باسم الخادم أو الكود:</label>
-                                        <input type="text" id="reportFilterInput" class="form-control" placeholder="ابحث داخل سجلات التقارير..." onkeyup="filterReportTable()">
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <button class="btn btn-outline-primary w-100" onclick="loadReports()">
-                                            <i class="fa-solid fa-rotate me-1"></i> تحديث التقارير
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover table-custom text-center align-middle" id="reportsTable">
-                                        <thead>
-                                            <tr>
-                                                <th>التاريخ</th>
-                                                <th>الكود</th>
-                                                <th>الاسم</th>
-                                                <th>الخدمة</th>
-                                                <th>القداس</th>
-                                                <th>مدارس الأحد</th>
-                                                <th>الاجتماع</th>
-                                                <th>التحضير</th>
-                                                <th>الكتاب المقدس</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="reportsTableBody">
-                                            <tr>
-                                                <td colspan="9" class="text-muted">اضغط على تحديث التقارير لجلب البيانات...</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                        </div> <!-- end tab-content -->
-
-                    </div>
-                </div>
-            </div>
+    <!-- شبكة التقارير (4 أقسام) -->
+    <div class="row g-3">
+      
+      <!-- 1. حضور القداس -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-success">
+          <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-church me-1"></i>حضور القداس</span>
+            <span id="massCount" class="badge bg-white text-success fs-6">0</span>
+          </div>
+          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
+            <ul id="massList" class="list-group list-group-flush">
+              <!-- يتم ملؤه ديناميكياً -->
+            </ul>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- نافذة إضافة خادم جديد (Modal) -->
-    <div class="modal fade" id="addServantModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">إضافة خادم جديد</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addServantForm">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">اسم الخادم الثلاثي</label>
-                            <input type="text" id="newServantName" class="form-control" placeholder="أدخل الاسم..." required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">الخدمة / الفصل</label>
-                            <input type="text" id="newServantService" class="form-control" placeholder="مثال: ابتدائي / إعدادي">
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">إضافة الخادم</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+      <!-- 2. حضور مدارس الأحد -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-info">
+          <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-book me-1"></i>مدارس الأحد</span>
+            <span id="sundaySchoolCount" class="badge bg-white text-info fs-6">0</span>
+          </div>
+          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
+            <ul id="sundaySchoolList" class="list-group list-group-flush">
+              <!-- يتم ملؤه ديناميكياً -->
+            </ul>
+          </div>
         </div>
+      </div>
+
+      <!-- 3. حضور اجتماع الخدمة -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-warning">
+          <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-people me-1"></i>اجتماع الخدمة</span>
+            <span id="serviceMeetingCount" class="badge bg-dark text-white fs-6">0</span>
+          </div>
+          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
+            <ul id="serviceMeetingList" class="list-group list-group-flush">
+              <!-- يتم ملؤه ديناميكياً -->
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. الغياب الكلي -->
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-danger">
+          <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-person-x me-1"></i>الغياب الكلي</span>
+            <span id="absentCount" class="badge bg-white text-danger fs-6">0</span>
+          </div>
+          <div class="card-body p-2 style-scroll" style="max-height: 300px; overflow-y: auto;">
+            <ul id="absentList" class="list-group list-group-flush">
+              <!-- يتم ملؤه ديناميكياً -->
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <!-- JS Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // رابط Web App الخاص بك
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhauo6Nt_fwF8ZP_tAEyE5lHIamg0uUcIHlk9SyMNs-M9eV5UBywabfqQaxgbSob5nbw/exec";
-        
-        let servantsData = [];
-        let reportsData = [];
-
-        // ضبط تاريخ اليوم تلقائياً
-        document.getElementById('attendanceDate').valueAsDate = new Date();
-
-        window.addEventListener('DOMContentLoaded', loadServantsList);
-
-        function showSpinner(show) {
-            const spinner = document.getElementById('loadingSpinner');
-            if (show) spinner.classList.remove('d-none');
-            else spinner.classList.add('d-none');
-        }
-
-        function showAlert(message, type = 'danger') {
-            const alertBox = document.getElementById('statusAlert');
-            alertBox.className = `alert alert-${type}`;
-            alertBox.innerText = message;
-            alertBox.classList.remove('d-none');
-            setTimeout(() => { alertBox.classList.add('d-none'); }, 5000);
-        }
-
-        // 1. تحميل قائمة الخدام للبحث
-        function loadServantsList() {
-            showSpinner(true);
-            fetch(`${SCRIPT_URL}?action=searchServants`)
-                .then(res => res.json())
-                .then(data => {
-                    showSpinner(false);
-                    if (Array.isArray(data)) servantsData = data;
-                })
-                .catch(err => {
-                    showSpinner(false);
-                    showAlert('❌ فشل تحميل قائمة الخدام', 'danger');
-                });
-        }
-
-        // 2. البحث والتصفية للخدام
-        const searchInput = document.getElementById('servantSearchInput');
-        const searchResults = document.getElementById('searchResults');
-
-        searchInput.addEventListener('input', function() {
-            const val = this.value.trim().toLowerCase();
-            searchResults.innerHTML = '';
-            
-            if (!val) {
-                searchResults.classList.add('d-none');
-                return;
-            }
-
-            const filtered = servantsData.filter(s => 
-                s.name.toLowerCase().includes(val) || s.code.toLowerCase().includes(val)
-            );
-
-            if (filtered.length > 0) {
-                filtered.forEach(s => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item servant-result-item d-flex justify-content-between align-items-center';
-                    li.innerHTML = `<span><strong>${s.name}</strong></span> <span class="badge bg-secondary">${s.code}</span>`;
-                    li.onclick = () => selectServant(s);
-                    searchResults.appendChild(li);
-                });
-                searchResults.classList.remove('d-none');
-            } else {
-                searchResults.classList.add('d-none');
-            }
-        });
-
-        function selectServant(servant) {
-            document.getElementById('servantCode').value = servant.code;
-            document.getElementById('servantName').value = servant.name;
-            document.getElementById('servantService').value = servant.service || '-';
-            searchInput.value = servant.name;
-            searchResults.classList.add('d-none');
-        }
-
-        function clearSelection() {
-            document.getElementById('servantCode').value = '';
-            document.getElementById('servantName').value = '';
-            document.getElementById('servantService').value = '';
-            searchInput.value = '';
-            searchResults.classList.add('d-none');
-        }
-
-        // 3. حفظ الحضور
-        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const code = document.getElementById('servantCode').value;
-            if (!code) {
-                showAlert('الرجاء اختيار خادم أولاً!', 'warning');
-                return;
-            }
-
-            showSpinner(true);
-            const params = new URLSearchParams({
-                action: 'saveData',
-                date: document.getElementById('attendanceDate').value,
-                code: code,
-                name: document.getElementById('servantName').value,
-                service: document.getElementById('servantService').value,
-                qaddas: document.getElementById('qaddas').value,
-                sundaySchool: document.getElementById('sundaySchool').value,
-                meeting: document.getElementById('meeting').value,
-                preparation: document.getElementById('preparation').value,
-                bible: document.getElementById('bible').value
-            });
-
-            fetch(`${SCRIPT_URL}?${params.toString()}`)
-                .then(res => res.json())
-                .then(res => {
-                    showSpinner(false);
-                    if (res.status === 'success') {
-                        showAlert('✅ تم تسجيل الحضور بنجاح!', 'success');
-                        clearSelection();
-                    } else {
-                        showAlert('خطأ: ' + res.message, 'danger');
-                    }
-                })
-                .catch(err => {
-                    showSpinner(false);
-                    showAlert('❌ فشل الاتصال أثناء الحفظ', 'danger');
-                });
-        });
-
-        // 4. إضافة خادم جديد
-        document.getElementById('addServantForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('newServantName').value.trim();
-            const service = document.getElementById('newServantService').value.trim();
-            if (!name) return;
-
-            showSpinner(true);
-            const modalEl = document.getElementById('addServantModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-
-            const params = new URLSearchParams({
-                action: 'addServant',
-                name: name,
-                service: service
-            });
-
-            fetch(`${SCRIPT_URL}?${params.toString()}`)
-                .then(res => res.json())
-                .then(res => {
-                    showSpinner(false);
-                    if (res.status === 'success') {
-                        showAlert('✅ تم إضافة الخادم بنجاح!', 'success');
-                        modal.hide();
-                        document.getElementById('addServantForm').reset();
-                        loadServantsList();
-                        selectServant(res.newServant);
-                    } else {
-                        showAlert('خطأ: ' + res.message, 'danger');
-                    }
-                })
-                .catch(err => {
-                    showSpinner(false);
-                    showAlert('❌ فشل الاتصال عند الإضافة', 'danger');
-                });
-        });
-
-        // 5. جلب وعرض سجل التقارير
-        function loadReports() {
-            showSpinner(true);
-            fetch(`${SCRIPT_URL}?action=getReports`)
-                .then(res => res.json())
-                .then(data => {
-                    showSpinner(false);
-                    if (Array.isArray(data)) {
-                        reportsData = data;
-                        renderReportsTable(reportsData);
-                    }
-                })
-                .catch(err => {
-                    showSpinner(false);
-                    showAlert('❌ تعذر جلب التقارير حالياً', 'danger');
-                });
-        }
-
-        function renderReportsTable(data) {
-            const tbody = document.getElementById('reportsTableBody');
-            tbody.innerHTML = '';
-
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-muted">لا توجد سجلات حالياً.</td></tr>';
-                return;
-            }
-
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${row.date || '-'}</td>
-                    <td><span class="badge bg-secondary">${row.code || '-'}</span></td>
-                    <td><strong>${row.name || '-'}</strong></td>
-                    <td>${row.service || '-'}</td>
-                    <td>${row.qaddas || '-'}</td>
-                    <td>${row.sundaySchool || '-'}</td>
-                    <td>${row.meeting || '-'}</td>
-                    <td>${row.preparation || '-'}</td>
-                    <td>${row.bible || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function filterReportTable() {
-            const val = document.getElementById('reportFilterInput').value.toLowerCase();
-            const filtered = reportsData.filter(r => 
-                (r.name && r.name.toLowerCase().includes(val)) || 
-                (r.code && r.code.toLowerCase().includes(val))
-            );
-            renderReportsTable(filtered);
-        }
-
-        // إغلاق قائمة الاقتراحات للبحث عند النقر خارجها
-        document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.classList.add('d-none');
-            }
-        });
-    </script>
-</body>
-</html>
+  </div>
+</section>
