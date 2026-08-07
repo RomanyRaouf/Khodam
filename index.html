@@ -425,7 +425,6 @@
       });
     }
 
-    // توليد تقارير الأسماء المباشرة
     function generateReports() {
       const selectedDate = document.getElementById('reportDate').value;
       const selectedStage = document.getElementById('reportStage').value;
@@ -441,14 +440,14 @@
 
       let cMass = 0, cSunday = 0, cService = 0, cPrep = 0, cBible = 0, cAbsent = 0;
 
-      // فلترة البيانات باليوم والمرحلة
+      // مطابقة مرنة للتواريخ لضمان جلب إدخالات اليوم بدون أخطاء
       const filtered = recordsData.filter(item => {
-        const matchDate = !selectedDate || item.date === selectedDate;
+        let itemDate = item.date ? item.date.toString().substring(0, 10) : '';
+        const matchDate = !selectedDate || itemDate === selectedDate;
         const matchStage = selectedStage === 'all' || item.stage === selectedStage;
         return matchDate && matchStage;
       });
 
-      // جلب جميع الأسماء المتاحة بالفيلتر المحدد لمعرفة الغائبين
       const activePeople = peopleList.filter(p => selectedStage === 'all' || p.stage === selectedStage);
 
       filtered.forEach(item => {
@@ -463,7 +462,6 @@
 
         const stageLabel = getStageTitle(item.stage);
 
-        // إضافة الأسماء للأنشطة المختلفة
         if (isMass) { cMass++; listMass.appendChild(createNameItem(item.name, stageLabel)); }
         if (isSunday) { cSunday++; listSunday.appendChild(createNameItem(item.name, stageLabel)); }
         if (isService) { cService++; listService.appendChild(createNameItem(item.name, stageLabel)); }
@@ -479,7 +477,6 @@
         }
       });
 
-      // تحديد الغائبين تماماً (الذين لم يسجل لهم أي نشاط في هذا اليوم)
       activePeople.forEach(person => {
         const hasRecord = filtered.some(r => r.name === person.name && (
           r.attendedMass || r.attendedSundaySchool || r.attendedServiceMeeting || r.attendedPrep
@@ -491,7 +488,6 @@
         }
       });
 
-      // تحديث شارات العدادات العلوية
       document.getElementById('cntMass').textContent = cMass;
       document.getElementById('cntSunday').textContent = cSunday;
       document.getElementById('cntService').textContent = cService;
@@ -499,7 +495,6 @@
       document.getElementById('cntBible').textContent = cBible;
       document.getElementById('cntAbsent').textContent = cAbsent;
 
-      // رسائل تنبيهية في حال خلو القوائم
       checkEmptyList(listMass, 'لا يوجد حاضرين');
       checkEmptyList(listSunday, 'لا يوجد حاضرين');
       checkEmptyList(listService, 'لا يوجد حاضرين');
@@ -508,7 +503,6 @@
       checkEmptyList(listAbsent, 'لا يوجد غائبين');
     }
 
-    // إنشاء عنصر اسم داخل القائمة
     function createNameItem(nameText, tagText, extraClass = '') {
       const li = document.createElement('li');
       li.className = `list-group-item py-2 px-1 border-0 border-bottom d-flex justify-content-between align-items-center ${extraClass}`;
