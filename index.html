@@ -43,7 +43,12 @@
         </h3>
         <small class="text-muted">البيانات مجلوبة مباشرة من Google Sheets</small>
       </div>
-      <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-primary fw-bold" onclick="fetchServerData()">
+          <i class="bi bi-arrow-clockwise me-1"></i>تحديث البيانات
+        </button>
+        <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
+      </div>
     </header>
 
     <!-- 1. نموذج تسجيل الحضور والخدمة -->
@@ -98,7 +103,7 @@
                   <label class="form-check-label fw-bold text-warning" for="chkServiceMeeting">اجتماع الخدمة</label>
                 </div>
                 <div class="ms-auto">
-                  <button type="submit" class="btn btn-primary px-4 fw-bold">
+                  <button type="submit" id="btnSubmit" class="btn btn-primary px-4 fw-bold">
                     <i class="bi bi-save me-1"></i>حفظ الحضور
                   </button>
                 </div>
@@ -240,23 +245,49 @@
       fetchServerData();
     });
 
+    // جلب البيانات مع دعم التوجيهات لتفادي خطأ الاتصال
     async function fetchServerData() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="py-4 text-muted">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            جاري الاتصال بالشيت وجلب البيانات...
+          </td>
+        </tr>
+      `;
+
       try {
-        const response = await fetch(SCRIPT_URL);
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            recordsData = data;
-            extractUniquePeople(data);
-            renderMainTable(peopleList);
-            generateReports();
-          }
+        const response = await fetch(SCRIPT_URL, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+
+        if (!response.ok) {
+          throw new Error('لم يتم الاستجابة بشكل صحيح من السيرفر');
         }
+
+        const data = await response.json();
+        
+        if (Array.isArray(data)) {
+          recordsData = data;
+          extractUniquePeople(data);
+          renderMainTable(peopleList);
+          generateReports();
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4" class="text-warning py-3">البيانات المرتجعة ليست بتنسيق قائمة صحيحة.</td></tr>`;
+        }
+
       } catch (error) {
-        console.error('خطأ أثناء جلب البيانات:', error);
-        document.getElementById('tableBody').innerHTML = `
+        console.error('خطأ الاتصال:', error);
+        tbody.innerHTML = `
           <tr>
-            <td colspan="4" class="text-danger py-3">حدث خطأ أثناء اتصال الشبكة بالشيت. يرجى الملاحظة والمحاولة مجدداً.</td>
+            <td colspan="4" class="text-danger py-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              لم نتمكن من الوصول للبيانات حالياً. تأكد من إعدادات النشر (Deploy) بـ Google Script على: 
+              <br><small class="text-dark fw-bold">"Who has access: Anyone"</small>
+              <br><button class="btn btn-sm btn-outline-danger mt-2" onclick="fetchServerData()">إعادة المحاولة</button>
+            </td>
           </tr>
         `;
       }
@@ -284,7 +315,7 @@
         return;
       }
 
-      list.forEach((item, index) => {
+      list.forEach((item) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><span class="badge bg-light text-dark border px-2 py-1">${item.code}</span></td>
@@ -328,6 +359,10 @@
     function handleFormSubmit(e) {
       e.preventDefault();
 
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>جاري الحفظ...';
+
       const nameVal = document.getElementById('personName').value.trim();
       const stageVal = document.getElementById('personStage').value;
 
@@ -346,16 +381,24 @@
       renderMainTable(peopleList);
       generateReports();
 
+      // إرسال البيانات إلى شيت جوجل
       fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }).catch(err => console.error(err));
-
-      document.getElementById('attendanceForm').reset();
-      document.getElementById('attendanceDate').value = payload.date;
-      alert('تم تسجيل البيانات بنجاح!');
+      }).then(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-save me-1"></i>حفظ الحضور';
+        document.getElementById('attendanceForm').reset();
+        document.getElementById('attendanceDate').value = payload.date;
+        alert('تم حفظ البيانات بنجاح في الشيت!');
+      }).catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-save me-1"></i>حفظ الحضور';
+        console.error(err);
+        alert('تم حفظ البيانات محلياً، وتوجد مشكلة بالاتصال بالشيت.');
+      });
     }
 
     function generateReports() {
