@@ -22,6 +22,12 @@
     
     .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #e0e0e0; }
     .checkbox-group label { margin: 0; font-size: 13px; font-weight: normal; }
+    
+    .bible-options { background: #fff; padding: 8px 10px; border-radius: 4px; border: 1px solid #e0e0e0; margin-bottom: 8px; }
+    .bible-options-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+    .bible-checkboxes { display: flex; gap: 15px; font-size: 13px; }
+    .bible-checkboxes label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
     button.btn-submit { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     button.btn-submit:hover { background-color: #218838; }
     #status { margin-top: 10px; text-align: center; font-weight: bold; font-size: 12px; }
@@ -82,9 +88,13 @@
       <select id="preparation"><option value="نعم">نعم</option><option value="لا">لا</option></select>
     </div>
 
-    <div class="checkbox-group">
-      <label>كتاب مقدس:</label>
-      <select id="bible"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+    <!-- كتاب مقدس مع إمكانية تحديد عهد قديم وعهد جديد معاً -->
+    <div class="bible-options">
+      <div class="bible-options-title">كتاب مقدس:</div>
+      <div class="bible-checkboxes">
+        <label><input type="checkbox" id="bibleOld" value="عهد قديم"> عهد قديم</label>
+        <label><input type="checkbox" id="bibleNew" value="عهد جديد"> عهد جديد</label>
+      </div>
     </div>
 
     <button class="btn-submit" onclick="submitForm()">حفظ البيانات</button>
@@ -107,7 +117,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLea9GQMUEjOJsb0F6dgGS2vX_oNNJOxMFXrDLBAWR__0OkcxCyGCG3CdHYZggvw_0Bg/exec";
+    // الرابط المحدث بعد الدبلوي
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHbKdg_MMWKMjl712L1W6q9EmON_FuGfWc6ojVbJ4nvzVSx9ZhS65UlmUj6_CI6r86gw/exec";
 
     document.getElementById('entryDate').valueAsDate = new Date();
 
@@ -118,7 +129,6 @@
       event.currentTarget.classList.add('active');
     }
 
-    // دالة مساعدة لإتمام طلبات JSONP وتفادي CORS
     function fetchJSONP(url, callbackName) {
       return new Promise((resolve) => {
         const script = document.createElement('script');
@@ -201,6 +211,11 @@
         return;
       }
 
+      var bibleSelected = [];
+      if (document.getElementById('bibleOld').checked) bibleSelected.push("عهد قديم");
+      if (document.getElementById('bibleNew').checked) bibleSelected.push("عهد جديد");
+      var bibleValue = bibleSelected.length > 0 ? bibleSelected.join(" + ") : "لا يوجد";
+
       document.getElementById('status').innerText = "جاري الحفظ...";
 
       var params = `action=saveData&code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}` +
@@ -209,13 +224,15 @@
                    `&sundaySchool=${encodeURIComponent(document.getElementById('sundaySchool').value)}` +
                    `&meeting=${encodeURIComponent(document.getElementById('meeting').value)}` +
                    `&preparation=${encodeURIComponent(document.getElementById('preparation').value)}` +
-                   `&bible=${encodeURIComponent(document.getElementById('bible').value)}`;
+                   `&bible=${encodeURIComponent(bibleValue)}`;
 
       fetchJSONP(`${SCRIPT_URL}?${params}`, 'handleSaveResponse').then(res => {
         document.getElementById('status').innerText = "تم حفظ البيانات بنجاح!";
         document.getElementById('servantCode').value = '';
         document.getElementById('servantName').value = '';
         document.getElementById('searchInput').value = '';
+        document.getElementById('bibleOld').checked = false;
+        document.getElementById('bibleNew').checked = false;
       });
     }
 
