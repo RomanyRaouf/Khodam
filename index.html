@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 12px; background-color: #f8f9fa; color: #333; }
+    h3 { text-align: center; color: #2c3e50; margin-bottom: 8px; }
+    .web-link { text-align: center; margin-bottom: 15px; }
+    .web-link a { font-size: 11px; color: #007bff; text-decoration: none; word-break: break-all; }
+    .tab { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 2px solid #ccc; }
+    .tab button { background: none; border: none; padding: 8px 12px; cursor: pointer; font-weight: bold; color: #666; }
+    .tab button.active { color: #007bff; border-bottom: 3px solid #007bff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 10px; position: relative; }
+    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+    input[type="text"], input[type="date"], select { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    
+    .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; z-index: 1000; max-height: 150px; overflow-y: auto; border-radius: 0 0 4px 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .suggestion-item { padding: 8px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
+    .suggestion-item:hover { background-color: #e9ecef; }
+    
+    .checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 6px 10px; border-radius: 4px; border: 1px solid #e0e0e0; }
+    .checkbox-group label { margin: 0; font-size: 13px; font-weight: normal; }
+    button.btn-submit { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    button.btn-submit:hover { background-color: #218838; }
+    #status { margin-top: 10px; text-align: center; font-weight: bold; font-size: 12px; }
+    .record-card { background: white; border: 1px solid #ddd; padding: 8px; margin-bottom: 8px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <h3>متابعة الخدام</h3>
+  <div class="web-link">
+    <a href="https://script.google.com/macros/s/AKfycbwaELU9FefidyIwVBY38VplEok2lhT8UoO4TYZ7d7EN4aGnpmjaghSVbro-fbiwhi0W3A/exec" target="_blank">🔗 فتح النموذج في صفحة مستقلة</a>
+  </div>
+
+  <div class="tab">
+    <button class="active" onclick="openTab('add')">تسجيل جديد</button>
+    <button onclick="openTab('search')">سجل الخادم</button>
+  </div>
+
+  <!-- تبويب تسجيل البيانات -->
+  <div id="add" class="tab-content active">
+    <div class="form-group">
+      <label>بحث بالكود أو الاسم:</label>
+      <input type="text" id="searchInput" oninput="onSearchInput(this.value)" placeholder="اكتب جزء من الاسم أو الكود..." autocomplete="off">
+      <div id="suggestionsBox" class="suggestions" style="display: none;"></div>
+    </div>
+
+    <div class="form-group">
+      <label>كود الخادم:</label>
+      <input type="text" id="servantCode" readonly placeholder="سيظهر الكود تلقائياً" style="background-color: #e9ecef;">
+    </div>
+
+    <div class="form-group">
+      <label>اسم الخادم:</label>
+      <input type="text" id="servantName" readonly placeholder="سيظهر الاسم تلقائياً" style="background-color: #e9ecef;">
+    </div>
+
+    <div class="form-group">
+      <label>التاريخ:</label>
+      <input type="date" id="entryDate">
+    </div>
+
+    <hr style="margin: 15px 0;">
+
+    <div class="checkbox-group">
+      <label>حضور قداس:</label>
+      <select id="qaddas"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+    </div>
+
+    <div class="checkbox-group">
+      <label>حضور مدارس أحد:</label>
+      <select id="sundaySchool"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+    </div>
+
+    <div class="checkbox-group">
+      <label>حضور إجتماع خدمة:</label>
+      <select id="meeting"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+    </div>
+
+    <div class="checkbox-group">
+      <label>تحضير:</label>
+      <select id="preparation"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+    </div>
+
+    <div class="checkbox-group">
+      <label>كتاب مقدس:</label>
+      <select id="bible"><option value="نعم">نعم</option><option value="لا">لا</option></select>
+    </div>
+
+    <button class="btn-submit" onclick="submitForm()">حفظ البيانات</button>
+    <div id="status"></div>
+  </div>
+
+  <!-- تبويب البحث -->
+  <div id="search" class="tab-content">
+    <div class="form-group">
+      <label>بحث بالاسم أو الكود لمشاهدة السجل:</label>
+      <input type="text" id="searchRecordInput" oninput="onSearchRecordInput(this.value)" placeholder="اكتب جزء من الاسم أو الكود..." autocomplete="off">
+      <div id="searchRecordSuggestions" class="suggestions" style="display: none;"></div>
+    </div>
+    
+    <input type="hidden" id="selectedSearchCode">
+    
+    <button class="btn-submit" style="background-color: #007bff;" onclick="searchRecords()">عرض السجل الكامل</button>
+    
+    <div id="searchResults" style="margin-top: 15px;"></div>
+  </div>
+
+  <script>
+    document.getElementById('entryDate').valueAsDate = new Date();
+
+    function checkGoogleScript() {
+      if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+        alert("تنبيه: يجب فتح هذه الصفحة من داخل Google Sheets أو عبر بيئة Google Apps Script الصحيحة ليتمكن الكود من الاتصال بالشيت.");
+        return false;
+      }
+      return true;
+    }
+
+    function openTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    function onSearchInput(val) {
+      var box = document.getElementById('suggestionsBox');
+      if (!val.trim()) {
+        box.style.display = 'none';
+        return;
+      }
+
+      if (!checkGoogleScript()) return;
+
+      google.script.run.withSuccessHandler(function(list) {
+        if (!list || list.length === 0) {
+          box.style.display = 'none';
+          return;
+        }
+        var html = '';
+        list.forEach(function(item) {
+          html += `<div class="suggestion-item" onclick="selectServant('${item.code}', '${item.name}')">
+            <b>${item.name}</b> (${item.code})
+          </div>`;
+        });
+        box.innerHTML = html;
+        box.style.display = 'block';
+      }).searchServants(val);
+    }
+
+    function selectServant(code, name) {
+      document.getElementById('servantCode').value = code;
+      document.getElementById('servantName').value = name;
+      document.getElementById('searchInput').value = name;
+      document.getElementById('suggestionsBox').style.display = 'none';
+    }
+
+    function onSearchRecordInput(val) {
+      var box = document.getElementById('searchRecordSuggestions');
+      if (!val.trim()) {
+        box.style.display = 'none';
+        return;
+      }
+
+      if (!checkGoogleScript()) return;
+
+      google.script.run.withSuccessHandler(function(list) {
+        if (!list || list.length === 0) {
+          box.style.display = 'none';
+          return;
+        }
+        var html = '';
+        list.forEach(function(item) {
+          html += `<div class="suggestion-item" onclick="selectRecordServant('${item.code}', '${item.name}')">
+            <b>${item.name}</b> (${item.code})
+          </div>`;
+        });
+        box.innerHTML = html;
+        box.style.display = 'block';
+      }).searchServants(val);
+    }
+
+    function selectRecordServant(code, name) {
+      document.getElementById('selectedSearchCode').value = code;
+      document.getElementById('searchRecordInput').value = `${name} (${code})`;
+      document.getElementById('searchRecordSuggestions').style.display = 'none';
+    }
+
+    function submitForm() {
+      var code = document.getElementById('servantCode').value;
+      var name = document.getElementById('servantName').value;
+      if (!code || !name) {
+        alert("يرجى اختيار خادم أولاً من القائمة المنسدلة");
+        return;
+      }
+
+      if (!checkGoogleScript()) return;
+
+      var formData = {
+        code: code,
+        name: name,
+        date: document.getElementById('entryDate').value,
+        qaddas: document.getElementById('qaddas').value,
+        sundaySchool: document.getElementById('sundaySchool').value,
+        meeting: document.getElementById('meeting').value,
+        preparation: document.getElementById('preparation').value,
+        bible: document.getElementById('bible').value
+      };
+
+      document.getElementById('status').innerText = "جاري الحفظ...";
+      google.script.run.withSuccessHandler(function(res) {
+        document.getElementById('status').innerText = res;
+        document.getElementById('servantCode').value = '';
+        document.getElementById('servantName').value = '';
+        document.getElementById('searchInput').value = '';
+      }).saveData(formData);
+    }
+
+    function searchRecords() {
+      var code = document.getElementById('selectedSearchCode').value;
+      if (!code) {
+        alert("يرجى اختيار خادم من البحث أولاً");
+        return;
+      }
+
+      if (!checkGoogleScript()) return;
+
+      var resultsDiv = document.getElementById('searchResults');
+      resultsDiv.innerHTML = "جاري البحث...";
+
+      google.script.run.withSuccessHandler(function(records) {
+        if(records.length === 0) {
+          resultsDiv.innerHTML = "<p style='text-align:center;'>لا توجد سجلات لهذا الخادم.</p>";
+          return;
+        }
+        var html = "";
+        records.forEach(function(rec) {
+          html += `<div class="record-card">
+            <b>التاريخ:</b> ${rec.date}<br>
+            <b>قداس:</b> ${rec.qaddas} | <b>مدارس أحد:</b> ${rec.sundaySchool}<br>
+            <b>اجتماع خدمة:</b> ${rec.meeting}<br>
+            <b>تحضير:</b> ${rec.preparation} | <b>كتاب مقدس:</b> ${rec.bible}
+          </div>`;
+        });
+        resultsDiv.innerHTML = html;
+      }).searchServantData(code);
+    }
+  </script>
+</body>
+</html>
