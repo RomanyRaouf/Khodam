@@ -300,32 +300,41 @@
 
     async function fetchServerData() {
       const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = `<tr><td colspan="4" class="py-3 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>جاري جلب البيانات...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="py-3 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>جاري جلب البيانات من الشيت...</td></tr>`;
 
       try {
-        const response = await fetch(SCRIPT_URL, { method: 'GET', redirect: 'follow' });
+        const cacheBusterUrl = SCRIPT_URL + '?t=' + new Date().getTime();
+        const response = await fetch(cacheBusterUrl, { method: 'GET', redirect: 'follow' });
+        
+        if (!response.ok) {
+          throw new Error('HTTP status ' + response.status);
+        }
+
         const data = await response.json();
         
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           recordsData = data;
           extractUniquePeople(data);
           renderMainTable(peopleList);
           generateReports();
         } else {
-          renderMainTable([]);
+          tbody.innerHTML = `<tr><td colspan="4" class="text-muted py-3">لا توجد بيانات مسجلة في الشيت حالياً.</td></tr>`;
+          recordsData = [];
+          peopleList = [];
+          generateReports();
         }
       } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-3">خطأ في الاتصال، اضغط "تحديث البيانات" لإعادة المحاولة.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-3">فشل جلب البيانات. تأكد من نشر Apps Script بإصدار جديد (New Version) وصلاحية (Anyone).</td></tr>`;
       }
     }
 
     function extractUniquePeople(data) {
       peopleList = [];
       data.forEach(item => {
-        if (item.name && !peopleList.some(p => p.name === item.name)) {
+        if (item.name && !peopleList.some(p => p.name.trim() === item.name.trim())) {
           peopleList.push({
             code: item.code || '---',
-            name: item.name,
+            name: item.name.trim(),
             stage: item.stage || ''
           });
         }
@@ -368,14 +377,34 @@
       renderMainTable(filtered);
     }
 
+    function normalizeStage(stage) {
+      if (!stage) return '';
+      let s = stage.toString().trim().toLowerCase();
+      if (s === 'servant' || s === 'خادم' || s === 'خدام') return 'servant';
+      if (s === 'primary' || s === 'ابتدائي') return 'primary';
+      if (s === 'prep' || s === 'إعدادي' || s === 'اعدادي') return 'prep';
+      if (s === 'sec' || s === 'ثانوي') return 'sec';
+      return s;
+    }
+
     function getStageTitle(stage) {
-      switch(stage) {
+      let norm = normalizeStage(stage);
+      switch(norm) {
         case 'primary': return 'ابتدائي';
         case 'prep': return 'إعدادي';
         case 'sec': return 'ثانوي';
         case 'servant': return 'خادم';
         default: return stage || 'غير محدد';
       }
+    }
+
+    function isTrueValue(val) {
+      if (val === true || val === 1) return true;
+      if (typeof val === 'string') {
+        let clean = val.trim().toLowerCase();
+        return clean === 'true' || clean === 'نعم' || clean === 'حاضر' || clean === '1' || clean === '✔';
+      }
+      return false;
     }
 
     function handleFormSubmit(e) {
@@ -440,25 +469,31 @@
 
       let cMass = 0, cSunday = 0, cService = 0, cPrep = 0, cBible = 0, cAbsent = 0;
 
-      // مطابقة مرنة للتواريخ لضمان جلب إدخالات اليوم بدون أخطاء
       const filtered = recordsData.filter(item => {
         let itemDate = item.date ? item.date.toString().substring(0, 10) : '';
         const matchDate = !selectedDate || itemDate === selectedDate;
-        const matchStage = selectedStage === 'all' || item.stage === selectedStage;
+        
+        const itemNormStage = normalizeStage(item.stage);
+        const selectedNormStage = normalizeStage(selectedStage);
+        const matchStage = selectedStage === 'all' || itemNormStage === selectedNormStage;
+        
         return matchDate && matchStage;
       });
 
-      const activePeople = peopleList.filter(p => selectedStage === 'all' || p.stage === selectedStage);
+      const activePeople = peopleList.filter(p => {
+        if (selectedStage === 'all') return true;
+        return normalizeStage(p.stage) === normalizeStage(selectedStage);
+      });
 
       filtered.forEach(item => {
-        const isMass = item.attendedMass === true;
-        const isSunday = item.attendedSundaySchool === true;
-        const isService = item.attendedServiceMeeting === true;
-        const isPrep = item.attendedPrep === true;
+        const isMass = isTrueValue(item.attendedMass);
+        const isSunday = isTrueValue(item.attendedSundaySchool);
+        const isService = isTrueValue(item.attendedServiceMeeting);
+        const isPrep = isTrueValue(item.attendedPrep);
         
-        const isOld = item.bibleOld === true;
-        const isNew = item.bibleNew === true;
-        const isIrr = item.bibleIrregular === true;
+        const isOld = isTrueValue(item.bibleOld);
+        const isNew = isTrueValue(item.bibleNew);
+        const isIrr = isTrueValue(item.bibleIrregular);
 
         const stageLabel = getStageTitle(item.stage);
 
@@ -478,8 +513,11 @@
       });
 
       activePeople.forEach(person => {
-        const hasRecord = filtered.some(r => r.name === person.name && (
-          r.attendedMass || r.attendedSundaySchool || r.attendedServiceMeeting || r.attendedPrep
+        const hasRecord = filtered.some(r => r.name.trim() === person.name.trim() && (
+          isTrueValue(r.attendedMass) || 
+          isTrueValue(r.attendedSundaySchool) || 
+          isTrueValue(r.attendedServiceMeeting) || 
+          isTrueValue(r.attendedPrep)
         ));
 
         if (!hasRecord) {
