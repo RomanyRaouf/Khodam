@@ -66,13 +66,13 @@
     <section class="card shadow-sm mb-4 border-top border-4 border-info">
       <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
         <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>تحديد الخادم / المشرف المسئول</span>
-        <span class="badge bg-info text-dark">اختر أو اكتب</span>
+        <span class="badge bg-info text-dark">اختر من الشيت</span>
       </div>
       <div class="card-body bg-white">
         <div class="row g-3">
           <div class="col-md-4 position-relative">
             <label class="form-label fw-bold">اسم الخادم المسئول:</label>
-            <input type="text" id="servantSearchInput" class="form-control" placeholder="اضغط هنا لاختيار الخادم..." autocomplete="off">
+            <input type="text" id="servantSearchInput" class="form-control" placeholder="انقر لاختيار الخادم من الشيت..." autocomplete="off">
             <div id="servantListDropdown" class="dropdown-select-list"></div>
           </div>
           <div class="col-md-4">
@@ -87,11 +87,11 @@
       </div>
     </section>
 
-    <!-- 1. نموذج تسجبل الحضور -->
+    <!-- 1. نموذج تسجيل الحضور -->
     <section class="card shadow-sm mb-4">
       <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
         <span><i class="bi bi-person-check me-2"></i>تسجيل حضور الخدام والمخدومين</span>
-        <span class="badge bg-warning text-dark"><i class="bi bi-hand-index-thumb me-1"></i>انقر على الحقل للاختيار السريع</span>
+        <span class="badge bg-warning text-dark"><i class="bi bi-search me-1"></i>اختر الاسم المجلوب من الشيت</span>
       </div>
       <div class="card-body">
         <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
@@ -99,7 +99,7 @@
             
             <div class="col-md-4 position-relative">
               <label class="form-label fw-bold">اسم الخادم / المخدوم:</label>
-              <input type="text" id="personSearchInput" class="form-control" placeholder="اضغط لاختيار اسم من القائمة..." required autocomplete="off">
+              <input type="text" id="personSearchInput" class="form-control" placeholder="ابحث أو اختر الاسم من الشيت..." required autocomplete="off">
               <div id="personListDropdown" class="dropdown-select-list"></div>
             </div>
 
@@ -233,15 +233,8 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
 
     let recordsData = [];
-    
-    // قائمة أولية افتراضية جاهزة لتظهر مباشرة بضغط زر
-    let registeredPeople = [
-      { name: 'مينا سمير', code: 'SERV-101', stage: 'servant', role: 'خادم ثانوي', sector: 'القطاع الأول' },
-      { name: 'جرجس عادل', code: 'SERV-102', stage: 'servant', role: 'خادم إعدادي', sector: 'القطاع الأول' },
-      { name: 'كيرلس عماد', code: 'CODE-201', stage: 'prep', role: '', sector: '' },
-      { name: 'يوحنا سامح', code: 'CODE-202', stage: 'primary', role: '', sector: '' },
-      { name: 'مارك أيمن', code: 'CODE-203', stage: 'sec', role: '', sector: '' }
-    ];
+    let registeredPeople = []; // يتم التعبئة تلقائياً من بيانات شيت جوجل فقط
+    let isDataLoaded = false;
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -249,7 +242,6 @@
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
       
-      // إعداد القوائم التفاعلية
       bindCustomSelect('servantSearchInput', 'servantListDropdown', (item) => {
         document.getElementById('servantSearchInput').value = item.name;
         if (item.role) document.getElementById('servantRole').value = item.role;
@@ -270,8 +262,14 @@
 
       const render = (val = '') => {
         dropdown.innerHTML = '';
+
+        if (!isDataLoaded && registeredPeople.length === 0) {
+          dropdown.innerHTML = `<div class="p-2 text-muted text-center small"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>جاري تحميل الأسماء من الشيت...</div>`;
+          dropdown.style.display = 'block';
+          return;
+        }
+
         const searchKey = val.trim().toLowerCase();
-        
         const matches = registeredPeople.filter(p => 
           !searchKey || p.name.toLowerCase().includes(searchKey) || (p.code && p.code.toLowerCase().includes(searchKey))
         );
@@ -283,9 +281,9 @@
             itemDiv.innerHTML = `
               <div>
                 <strong class="text-dark">${p.name}</strong>
-                <small class="text-muted ms-2">(${getStageTitle(p.stage)})</small>
+                ${p.stage ? `<small class="text-muted ms-2">(${getStageTitle(p.stage)})</small>` : ''}
               </div>
-              <span class="badge bg-light text-dark border">${p.code || 'بدون كود'}</span>
+              ${p.code ? `<span class="badge bg-light text-dark border">${p.code}</span>` : ''}
             `;
             itemDiv.onclick = (e) => {
               e.stopPropagation();
@@ -295,7 +293,7 @@
             dropdown.appendChild(itemDiv);
           });
         } else {
-          dropdown.innerHTML = `<div class="p-2 text-muted text-center small">اسم جديد (سيتم حفظه تلقائياً)</div>`;
+          dropdown.innerHTML = `<div class="p-2 text-muted text-center small">لا يوجد اسم مطابق في الشيت</div>`;
         }
         dropdown.style.display = 'block';
       };
@@ -315,26 +313,29 @@
         const response = await fetch(SCRIPT_URL);
         if (response.ok) {
           const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             recordsData = data;
             buildPeopleIndex(data);
             generateReports();
           }
         }
       } catch (error) {
-        console.warn('تعذر الاتصال بـ Google Sheets، تم تفعيل الوضع المحلي التلقائي.');
+        console.error('خطأ أثناء جلب البيانات من Google Sheets:', error);
+      } finally {
+        isDataLoaded = true;
       }
     }
 
     function buildPeopleIndex(data) {
+      registeredPeople = [];
       data.forEach((item, index) => {
         if (item.name && !registeredPeople.some(p => p.name === item.name)) {
           registeredPeople.push({
             name: item.name,
-            code: `CODE-${100 + index}`,
-            stage: item.stage,
-            role: item.servantRole,
-            sector: item.servantSector
+            code: item.code || item.id || '',
+            stage: item.stage || '',
+            role: item.servantRole || item.role || '',
+            sector: item.servantSector || item.sector || ''
           });
         }
       });
@@ -346,7 +347,7 @@
         case 'prep': return 'إعدادي';
         case 'sec': return 'ثانوي';
         case 'servant': return 'خادم';
-        default: return stage || 'غير محدد';
+        default: return stage || '';
       }
     }
 
@@ -368,19 +369,9 @@
         attendedServiceMeeting: document.getElementById('chkServiceMeeting').checked
       };
 
-      // حفظ الاسم محلياً في القائمة فوراً
-      if (!registeredPeople.some(p => p.name === nameVal)) {
-        registeredPeople.push({
-          name: nameVal,
-          code: `CODE-${100 + registeredPeople.length}`,
-          stage: stageVal
-        });
-      }
-
       recordsData.push(payload);
       generateReports();
 
-      // إرسال البيانات للسيرفر في الخلفية
       fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -440,7 +431,7 @@
     function createListItem(text, badgeText, extraClass = '') {
       const li = document.createElement('li');
       li.className = `list-group-item py-1 px-2 border-0 border-bottom small d-flex justify-content-between align-items-center ${extraClass}`;
-      li.innerHTML = `<span>${text}</span> <span class="badge bg-light text-dark border">${badgeText}</span>`;
+      li.innerHTML = `<span>${text}</span> ${badgeText ? `<span class="badge bg-light text-dark border">${badgeText}</span>` : ''}`;
       return li;
     }
   </script>
