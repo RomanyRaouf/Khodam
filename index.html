@@ -184,7 +184,7 @@
       <h2>⛪ نظام متابعة وافتقاد الخدام</h2>
       <div>
         <span id="loadStatus" class="status-badge status-loading">⏳ جاري التحميل...</span>
-        <button class="btn-reload" onclick="forceReloadData()">🔄 تحديث القائمة</button>
+        <button class="btn-reload" onclick="forceReloadData()">🔄 تحديث مباشر</button>
       </div>
     </div>
 
@@ -354,9 +354,9 @@
     }
 
     function forceReloadData() {
-      localStorage.removeItem('cached_servants_fast_v1');
+      localStorage.removeItem('cached_servants_v2');
       const statusBadge = document.getElementById('loadStatus');
-      statusBadge.innerText = "⏳ جاري التحديث من الشيت...";
+      statusBadge.innerText = "⏳ جاري التحديث...";
       statusBadge.className = "status-badge status-loading";
       loadAllServantsOnStart(true);
     }
@@ -364,52 +364,51 @@
     function loadAllServantsOnStart(force = false) {
       const statusBadge = document.getElementById('loadStatus');
 
-      // محاولة القراءة الفورية من الذاكرة المحلية (تستغرق 0 ثانية)
-      const cached = localStorage.getItem('cached_servants_fast_v1');
-      if (cached && !force) {
+      // عرض الكاش القديم فوراً إن وجد لتفادي أي انتظار
+      const cached = localStorage.getItem('cached_servants_v2');
+      if (cached) {
         try {
           allServantsList = JSON.parse(cached);
-          statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم - ذاكرة مؤقتة)`;
-          statusBadge.className = "status-badge status-ready";
           renderAllServantsTable(allServantsList);
-          return;
-        } catch(e) {
-          console.error(e);
-        }
+          statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم)`;
+          statusBadge.className = "status-badge status-ready";
+          if (!force) return; // إذا لم يطلب تحديث مباشر، نكتفي بالبيانات السريعة
+        } catch(e) {}
       }
 
-      // الجلب المباشر من السيرفر عند عدم وجود كاش أو اضطرار للتحديث
       const cbName = 'cb_load_servants_' + Date.now();
+      let isHandled = false;
+
+      // ضبط مهلة زمنية إضافية للأمان (Timeout)
+      const timeoutId = setTimeout(() => {
+        if (!isHandled) {
+          isHandled = true;
+          cleanupScript(cbName);
+          if (allServantsList.length > 0) {
+            statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم - ذاكرة)`;
+            statusBadge.className = "status-badge status-ready";
+          } else {
+            statusBadge.innerText = "⚠️ استجابة بطيئة، أعد المحاولة";
+          }
+        }
+      }, 6000);
 
       window[cbName] = function(data) {
+        if (isHandled) return;
+        isHandled = true;
+        clearTimeout(timeoutId);
+
         if (data && Array.isArray(data) && data.length > 0) {
-          allServantsList = data.map(item => {
-            let rawCode = item.code || '';
-            let rawName = item.name || '';
-            let rawService = item.service || '';
+          allServantsList = data.map(item => ({
+            code: item.code ? item.code.toString().trim() : '',
+            name: item.name ? item.name.toString().trim() : '',
+            service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
+          }));
 
-            if (isNaN(rawCode) && !isNaN(rawName)) {
-              let temp = rawCode;
-              rawCode = rawName;
-              rawName = temp;
-            }
-
-            return {
-              code: rawCode ? rawCode.toString().trim() : '',
-              name: rawName ? rawName.toString().trim() : '',
-              service: (rawService && rawService !== '-') ? rawService.toString().trim() : ''
-            };
-          });
-
-          // حفظ البيانات في الكاش لفتح سريع جداً المرة القادمة
-          localStorage.setItem('cached_servants_fast_v1', JSON.stringify(allServantsList));
-
+          localStorage.setItem('cached_servants_v2', JSON.stringify(allServantsList));
           statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
           statusBadge.className = "status-badge status-ready";
           renderAllServantsTable(allServantsList);
-        } else {
-          statusBadge.innerText = "❌ تعذر التحميل";
-          document.getElementById('allServantsTableArea').innerHTML = "<p style='color:red; text-align:center;'>فشل تحميل قائمة الخدام.</p>";
         }
         cleanupScript(cbName);
       };
