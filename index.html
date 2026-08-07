@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة وتتبع الحضور</title>
+  <title>نظام إدارة وتتبع الحضور والخدمة</title>
   
   <!-- Bootstrap 5 RTL CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
@@ -46,7 +46,7 @@
 </head>
 <body class="p-3 p-md-4">
 
-  <!-- شاشة التحميل (Loading Overlay) -->
+  <!-- شاشة التحميل -->
   <div id="loadingOverlay" class="loading-overlay">
     <div class="text-center">
       <div class="spinner-border text-primary mb-2" style="width: 3rem; height: 3rem;" role="status"></div>
@@ -57,12 +57,36 @@
   <div class="container-fluid max-width-xl">
     
     <!-- هيدر الصفحة -->
-    <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm">
+    <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-4 border-primary">
       <h3 class="m-0 text-primary fw-bold">
         <i class="bi bi-calendar-check me-2"></i>نظام متابعة الحضور والخدمة
       </h3>
       <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
     </header>
+
+    <!-- 0. قسم بيانات الخادم / المشرف (في بداية الصفحة) -->
+    <section class="card shadow-sm mb-4 border-top border-4 border-info">
+      <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person-badge text-info me-2 fs-5"></i>بيانات الخادم / المشرف المسئول</span>
+        <span class="badge bg-info text-dark">بيانات أساسية</span>
+      </div>
+      <div class="card-body bg-white">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-bold">اسم الخادم / المشرف:</label>
+            <input type="text" id="servantName" class="form-control" placeholder="أدخل اسم الخادم المسؤول...">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">الخدمة / المرحلة:</label>
+            <input type="text" id="servantRole" class="form-control" placeholder="مثال: أسرة أبتدائي / إعدادي...">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">القطاع / المنطقة:</label>
+            <input type="text" id="servantSector" class="form-control" placeholder="أدخل اسم الكنيسة أو القطاع...">
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- 1. قسم إدخال وتسجيل الحضور -->
     <section class="card shadow-sm mb-4">
@@ -126,7 +150,7 @@
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والغياب</h5>
         <button class="btn btn-light btn-sm fw-bold" onclick="exportData()">
-          <i class="bi bi-file-earmark-excel text-success me-1"></i>تحديث البيانات من السيرفر
+          <i class="bi bi-arrow-repeat text-primary me-1"></i>تحديث البيانات
         </button>
       </div>
       <div class="card-body">
@@ -149,7 +173,7 @@
           </div>
           <div class="col-md-4 text-end">
             <button class="btn btn-outline-primary w-100 fw-bold" onclick="generateReports()">
-              <i class="bi bi-arrow-clockwise me-1"></i>عرض / تحديث التقرير
+              <i class="bi bi-funnel me-1"></i>عرض التقرير
             </button>
           </div>
         </div>
@@ -215,33 +239,39 @@
 
   </div>
 
-  <!-- JavaScript Script Scripting -->
+  <!-- JavaScript Scripting -->
   <script>
-    // رابط Apps Script الخاص بك
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhyZkTDdtgail63Pxjm4FAskynvr0fvhMqb2tS0q3vQnJgTNVRPIfiNsQiwOaIaGns_Q/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
 
-    // التخزين المحلي للبيانات
     let recordsData = [];
 
-    // إعداد التواريخ الافتراضية عند تحميل الصفحة
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('attendanceDate').value = today;
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
       
-      // جلب البيانات الأولية
+      // استرجاع بيانات الخادم المحفوظة محلياً إن وجدت
+      document.getElementById('servantName').value = localStorage.getItem('servantName') || '';
+      document.getElementById('servantRole').value = localStorage.getItem('servantRole') || '';
+      document.getElementById('servantSector').value = localStorage.getItem('servantSector') || '';
+
       fetchServerData();
     });
 
-    // إظهار/إخفاء شاشة التحميل
+    // حفظ بيانات الخادم تلقائياً في LocalStorage
+    ['servantName', 'servantRole', 'servantSector'].forEach(id => {
+      document.getElementById(id).addEventListener('input', (e) => {
+        localStorage.setItem(id, e.target.value);
+      });
+    });
+
     function toggleSpinner(show) {
       const spinner = document.getElementById('loadingOverlay');
       if (show) spinner.classList.add('active');
       else spinner.classList.remove('active');
     }
 
-    // جلب البيانات من السيرفر (Google Apps Script)
     async function fetchServerData() {
       toggleSpinner(true);
       try {
@@ -258,11 +288,13 @@
       }
     }
 
-    // إرسال السجل الجديد للسيرفر
     async function handleFormSubmit(e) {
       e.preventDefault();
 
       const payload = {
+        servantName: document.getElementById('servantName').value,
+        servantRole: document.getElementById('servantRole').value,
+        servantSector: document.getElementById('servantSector').value,
         name: document.getElementById('personName').value,
         stage: document.getElementById('personStage').value,
         date: document.getElementById('attendanceDate').value,
@@ -274,30 +306,27 @@
       toggleSpinner(true);
 
       try {
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors', // للتعامل مع قيود Google Apps Script CORS
+          mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
-        // إضافة البيانات محلياً لتفادي إعادة التحميل الفوري
         recordsData.push(payload);
         generateReports();
         
-        // إعادة ضبط الحقول
         document.getElementById('attendanceForm').reset();
         document.getElementById('attendanceDate').value = payload.date;
-        alert('تم حفظ البيانات بنجاح!');
+        alert('تم تسجيل الحضور بنجاح!');
       } catch (err) {
-        alert('حدث خطأ أثناء حفظ البيانات، يرجى المحاولة مرة أخرى.');
+        alert('حدث خطأ أثناء حفظ البيانات!');
         console.error(err);
       } finally {
         toggleSpinner(false);
       }
     }
 
-    // دالة توليد وعرض التقارير والأقسام الأربعة
     function generateReports() {
       const selectedDate = document.getElementById('reportDate').value;
       const selectedStage = document.getElementById('reportStage').value;
@@ -307,7 +336,6 @@
       const serviceMeetingList = document.getElementById('serviceMeetingList');
       const absentList = document.getElementById('absentList');
 
-      // تفريغ المحتوى
       massList.innerHTML = '';
       sundaySchoolList.innerHTML = '';
       serviceMeetingList.innerHTML = '';
@@ -315,7 +343,6 @@
 
       let cMass = 0, cSunday = 0, cService = 0, cAbsent = 0;
 
-      // تصفية البيانات حسب التاريخ والمرحلة
       const filtered = recordsData.filter(item => {
         const matchDate = !selectedDate || item.date === selectedDate;
         const matchStage = selectedStage === 'all' || item.stage === selectedStage;
@@ -327,39 +354,21 @@
         const isSunday = item.attendedSundaySchool === true || item.attendedSundaySchool === 'true';
         const isService = item.attendedServiceMeeting === true || item.attendedServiceMeeting === 'true';
 
-        // 1. حضور القداس
-        if (isMass) {
-          cMass++;
-          massList.appendChild(createListItem(item.name));
-        }
-
-        // 2. حضور مدارس الأحد
-        if (isSunday) {
-          cSunday++;
-          sundaySchoolList.appendChild(createListItem(item.name));
-        }
-
-        // 3. حضور اجتماع الخدمة
-        if (isService) {
-          cService++;
-          serviceMeetingList.appendChild(createListItem(item.name));
-        }
-
-        // 4. الغياب الكلي (لم يحضر أي نشاط)
+        if (isMass) { cMass++; massList.appendChild(createListItem(item.name)); }
+        if (isSunday) { cSunday++; sundaySchoolList.appendChild(createListItem(item.name)); }
+        if (isService) { cService++; serviceMeetingList.appendChild(createListItem(item.name)); }
         if (!isMass && !isSunday && !isService) {
           cAbsent++;
           absentList.appendChild(createListItem(item.name, 'text-danger fw-bold'));
         }
       });
 
-      // تحديث الشارات والأعداد
       document.getElementById('massCount').textContent = cMass;
       document.getElementById('sundaySchoolCount').textContent = cSunday;
       document.getElementById('serviceMeetingCount').textContent = cService;
       document.getElementById('absentCount').textContent = cAbsent;
     }
 
-    // إنشاء عنصر قائمة القوائم
     function createListItem(text, extraClass = '') {
       const li = document.createElement('li');
       li.className = `list-group-item py-1 px-2 border-0 border-bottom small ${extraClass}`;
