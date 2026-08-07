@@ -55,6 +55,7 @@
 
     .status-loading { background-color: #fff3cd; color: #856404; }
     .status-ready { background-color: #d4edda; color: #155724; }
+    .status-error { background-color: #f8d7da; color: #721c24; }
 
     .tabs {
       display: flex;
@@ -335,7 +336,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBN036RVKlUluPw2mfvNPy7FOdyGxmzduQLJPCwh7jdjQFmJ3sbmMGzJV_vuN3BpsNwg/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWwbxR9rAWwa0dRPTp4JEFZomiLBaw7bHQuW4rylnhxmylEEatxbsZ9opIULwgeElXtA/exec";
     let allServantsList = [];
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -354,60 +355,69 @@
     }
 
     function forceReloadData() {
-      localStorage.removeItem('cached_servants_v2');
+      localStorage.removeItem('cached_servants_v4');
       const statusBadge = document.getElementById('loadStatus');
       statusBadge.innerText = "⏳ جاري التحديث...";
       statusBadge.className = "status-badge status-loading";
-      loadAllServantsOnStart(true);
+      fetchServantsFromNetwork();
     }
 
-    function loadAllServantsOnStart(force = false) {
+    function loadAllServantsOnStart() {
       const statusBadge = document.getElementById('loadStatus');
+      const cached = localStorage.getItem('cached_servants_v4');
 
-      // عرض الكاش القديم فوراً إن وجد لتفادي أي انتظار
-      const cached = localStorage.getItem('cached_servants_v2');
       if (cached) {
         try {
           allServantsList = JSON.parse(cached);
           renderAllServantsTable(allServantsList);
           statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم)`;
           statusBadge.className = "status-badge status-ready";
-          if (!force) return; // إذا لم يطلب تحديث مباشر، نكتفي بالبيانات السريعة
+          return;
         } catch(e) {}
       }
 
-      const cbName = 'cb_load_servants_' + Date.now();
-      let isHandled = false;
+      fetchServantsFromNetwork();
+    }
 
-      // ضبط مهلة زمنية إضافية للأمان (Timeout)
-      const timeoutId = setTimeout(() => {
-        if (!isHandled) {
-          isHandled = true;
-          cleanupScript(cbName);
-          if (allServantsList.length > 0) {
-            statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم - ذاكرة)`;
+    function fetchServantsFromNetwork() {
+      const statusBadge = document.getElementById('loadStatus');
+      const url = `${SCRIPT_URL}?action=searchServants`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            allServantsList = data.map(item => ({
+              code: item.code ? item.code.toString().trim() : '',
+              name: item.name ? item.name.toString().trim() : '',
+              service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
+            }));
+
+            localStorage.setItem('cached_servants_v4', JSON.stringify(allServantsList));
+            statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
             statusBadge.className = "status-badge status-ready";
+            renderAllServantsTable(allServantsList);
           } else {
-            statusBadge.innerText = "⚠️ استجابة بطيئة، أعد المحاولة";
+            fallbackJSONP();
           }
-        }
-      }, 6000);
+        })
+        .catch(err => {
+          fallbackJSONP();
+        });
+    }
 
+    function fallbackJSONP() {
+      const cbName = 'cb_servants_' + Date.now();
       window[cbName] = function(data) {
-        if (isHandled) return;
-        isHandled = true;
-        clearTimeout(timeoutId);
-
-        if (data && Array.isArray(data) && data.length > 0) {
+        if (data && Array.isArray(data)) {
           allServantsList = data.map(item => ({
             code: item.code ? item.code.toString().trim() : '',
             name: item.name ? item.name.toString().trim() : '',
             service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
           }));
-
-          localStorage.setItem('cached_servants_v2', JSON.stringify(allServantsList));
-          statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
-          statusBadge.className = "status-badge status-ready";
+          localStorage.setItem('cached_servants_v4', JSON.stringify(allServantsList));
+          document.getElementById('loadStatus').innerText = `✅ جاهز (${allServantsList.length} خادم)`;
+          document.getElementById('loadStatus').className = "status-badge status-ready";
           renderAllServantsTable(allServantsList);
         }
         cleanupScript(cbName);
