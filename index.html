@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نظام متابعة الحضور والخدمة الشامل</title>
   
-  <!-- Bootstrap 5 RTL CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
-  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   
   <style>
@@ -15,7 +13,7 @@
     .card { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .style-scroll::-webkit-scrollbar { width: 6px; }
     .style-scroll::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 4px; }
-    .bible-box { background-color: #f1f3f5; border-radius: 8px; padding: 10px; }
+    .bible-box { background-color: #f1f3f5; border-radius: 8px; padding: 12px; }
   </style>
 </head>
 <body class="p-3 p-md-4">
@@ -38,11 +36,11 @@
       </div>
     </header>
 
-    <!-- 1. نموذج تسجيل الحضور الشامل -->
+    <!-- 1. نموذج تسجيل الحضور والأنشطة -->
     <section class="card mb-4 border-top border-4 border-primary">
       <div class="card-header bg-white fw-bold py-3 text-primary d-flex justify-content-between align-items-center">
         <span><i class="bi bi-person-plus-fill me-2"></i>تسجيل بيانات الحضور والأنشطة</span>
-        <small class="text-muted">اختر شخصاً من الجدول أو أدخل البيانات يدوياً</small>
+        <small class="text-muted">اختر شخصاً من الجدول أدناه أو سجل شخصاً جديداً</small>
       </div>
       <div class="card-body">
         <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
@@ -50,12 +48,12 @@
             
             <div class="col-md-2">
               <label class="form-label fw-bold">الكود:</label>
-              <input type="text" id="personCode" class="form-control" placeholder="الكود" readonly>
+              <input type="text" id="personCode" class="form-control" placeholder="تلقائي / كود" readonly>
             </div>
 
             <div class="col-md-4">
               <label class="form-label fw-bold">الاسم الكامل:</label>
-              <input type="text" id="personName" class="form-control" placeholder="أدخل الاسم أو حدده من الجدول..." required>
+              <input type="text" id="personName" class="form-control" placeholder="أدخل الاسم..." required>
             </div>
 
             <div class="col-md-3">
@@ -74,7 +72,7 @@
               <input type="date" id="attendanceDate" class="form-control" required>
             </div>
 
-            <!-- أنشطة الحضور والتحضير -->
+            <!-- الحضور والتحضير -->
             <div class="col-12">
               <label class="form-label fw-bold text-primary">أولاً: الحضور والتحضير</label>
               <div class="d-flex flex-wrap gap-4 bg-light p-3 rounded border align-items-center">
@@ -92,27 +90,27 @@
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="chkPreparation">
-                  <label class="form-check-label fw-bold text-purple" for="chkPreparation">تحضير</label>
+                  <label class="form-check-label fw-bold text-primary" for="chkPreparation">تحضير</label>
                 </div>
               </div>
             </div>
 
-            <!-- قراءة الكتاب المقدس -->
+            <!-- الكتاب المقدس -->
             <div class="col-12">
-              <label class="form-label fw-bold text-primary">ثانياً: الكتاب المقدس (يمكنك اختيار خيارين)</label>
+              <label class="form-label fw-bold text-primary">ثانياً: قراءة الكتاب المقدس (يمكن تحديد الخيارين معاً)</label>
               <div class="bible-box border">
                 <div class="d-flex flex-wrap gap-4 align-items-center">
                   <div class="form-check">
-                    <input class="form-check-input bible-chk" type="checkbox" id="chkOldTestament" onchange="toggleIrregularOption()">
+                    <input class="form-check-input" type="checkbox" id="chkOldTestament" onchange="toggleBibleOptions('testament')">
                     <label class="form-check-label fw-bold text-dark" for="chkOldTestament">عهد قديم</label>
                   </div>
                   <div class="form-check">
-                    <input class="form-check-input bible-chk" type="checkbox" id="chkNewTestament" onchange="toggleIrregularOption()">
+                    <input class="form-check-input" type="checkbox" id="chkNewTestament" onchange="toggleBibleOptions('testament')">
                     <label class="form-check-label fw-bold text-dark" for="chkNewTestament">عهد جديد</label>
                   </div>
                   <div class="vr"></div>
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="chkIrregular" onchange="toggleTestamentOptions()">
+                    <input class="form-check-input" type="checkbox" id="chkIrregular" onchange="toggleBibleOptions('irregular')">
                     <label class="form-check-label fw-bold text-danger" for="chkIrregular">غير منتظم في القراءة</label>
                   </div>
                 </div>
@@ -133,13 +131,13 @@
     <!-- 2. جدول الأسماء المسجلة -->
     <section class="card mb-4">
       <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h5 class="m-0 fw-bold"><i class="bi bi-people me-2"></i>سجل الأسماء</h5>
+        <h5 class="m-0 fw-bold"><i class="bi bi-people me-2"></i>سجل الأسماء المسجلة</h5>
         <div style="max-width: 300px; width: 100%;">
           <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث باسم أو كود..." onkeyup="filterTable()">
         </div>
       </div>
       <div class="card-body p-0">
-        <div class="table-responsive style-scroll" style="max-height: 300px;">
+        <div class="table-responsive style-scroll" style="max-height: 250px;">
           <table class="table table-hover align-middle m-0 text-center">
             <thead class="table-light sticky-top">
               <tr>
@@ -157,10 +155,10 @@
       </div>
     </section>
 
-    <!-- 3. تقارير الحضور والغياب والشواهد -->
+    <!-- 3. تقارير الحضور والغياب -->
     <section class="card mb-4">
-      <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>تقارير الحضور والغياب المجهزة</h5>
+      <div class="card-header bg-primary text-white py-3">
+        <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>تقارير الحضور والغياب الشاملة</h5>
       </div>
       <div class="card-body">
         <div class="row g-3 mb-4 align-items-end">
@@ -185,78 +183,78 @@
 
         <div class="row g-3">
           <!-- حضور قداس -->
-          <div class="col-md-6 col-lg-3">
+          <div class="col-md-6 col-lg-4">
             <div class="card border-success h-100">
               <div class="card-header bg-success text-white fw-bold d-flex justify-content-between">
                 <span>حضور القداس</span>
                 <span id="cntMass" class="badge bg-white text-success">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 200px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 180px; overflow-y: auto;">
                 <ul id="listMass" class="list-group list-group-flush"></ul>
               </div>
             </div>
           </div>
 
           <!-- حضور مدارس الأحد -->
-          <div class="col-md-6 col-lg-3">
+          <div class="col-md-6 col-lg-4">
             <div class="card border-info h-100">
               <div class="card-header bg-info text-white fw-bold d-flex justify-content-between">
                 <span>مدارس الأحد</span>
                 <span id="cntSunday" class="badge bg-white text-info">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 200px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 180px; overflow-y: auto;">
                 <ul id="listSunday" class="list-group list-group-flush"></ul>
               </div>
             </div>
           </div>
 
           <!-- حضور اجتماع الخدمة -->
-          <div class="col-md-6 col-lg-3">
+          <div class="col-md-6 col-lg-4">
             <div class="card border-warning h-100">
               <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between">
                 <span>اجتماع الخدمة</span>
                 <span id="cntService" class="badge bg-dark text-white">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 200px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 180px; overflow-y: auto;">
                 <ul id="listService" class="list-group list-group-flush"></ul>
               </div>
             </div>
           </div>
 
           <!-- التحضير -->
-          <div class="col-md-6 col-lg-3">
-            <div class="card border-purple border-primary h-100">
+          <div class="col-md-6 col-lg-4">
+            <div class="card border-primary h-100">
               <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between">
                 <span>الذين قاموا بالتحضير</span>
                 <span id="cntPrep" class="badge bg-white text-primary">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 200px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 180px; overflow-y: auto;">
                 <ul id="listPrep" class="list-group list-group-flush"></ul>
               </div>
             </div>
           </div>
 
-          <!-- الكتاب المقدس: عهد قديم وجديد -->
-          <div class="col-md-6">
+          <!-- قراءة الكتاب المقدس -->
+          <div class="col-md-6 col-lg-4">
             <div class="card border-secondary h-100">
               <div class="card-header bg-secondary text-white fw-bold d-flex justify-content-between">
-                <span>متابعة قراءة الكتاب المقدس (منتظم)</span>
+                <span>متابعة قراءة الكتاب المقدس</span>
                 <span id="cntBible" class="badge bg-white text-dark">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 200px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 180px; overflow-y: auto;">
                 <ul id="listBible" class="list-group list-group-flush"></ul>
               </div>
             </div>
           </div>
 
-          <!-- الغياب الكلي -->
-          <div class="col-md-6">
+          <!-- الغائبون -->
+          <div class="col-md-6 col-lg-4">
             <div class="card border-danger h-100">
               <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between">
-                <span>قائمة الغائبين كلياً في هذا اليوم</span>
+                <span>قائمة الغائبين تماماً</span>
                 <span id="cntAbsent" class="badge bg-white text-danger">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 200px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 180px; overflow-y: auto;">
                 <ul id="listAbsent" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -270,7 +268,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgonlIwnudddtZBn1XZaYDEqw4X1zcXVjVTdUboeBqZkmxViNAc_TlXPBtS4aeqhgFng/exec
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgonlIwnudddtZBn1XZaYDEqw4X1zcXVjVTdUboeBqZkmxViNAc_TlXPBtS4aeqhgFng/exec';
+
     let recordsData = [];
     let peopleList = [];
 
@@ -283,25 +282,22 @@
       fetchServerData();
     });
 
-    // التحكم في خيارات الكتاب المقدس
-    function toggleIrregularOption() {
-      const oldT = document.getElementById('chkOldTestament').checked;
-      const newT = document.getElementById('chkNewTestament').checked;
-      if (oldT || newT) {
-        document.getElementById('chkIrregular').checked = false;
-      }
-    }
+    function toggleBibleOptions(type) {
+      const chkOld = document.getElementById('chkOldTestament');
+      const chkNew = document.getElementById('chkNewTestament');
+      const chkIrr = document.getElementById('chkIrregular');
 
-    function toggleTestamentOptions() {
-      if (document.getElementById('chkIrregular').checked) {
-        document.getElementById('chkOldTestament').checked = false;
-        document.getElementById('chkNewTestament').checked = false;
+      if (type === 'testament' && (chkOld.checked || chkNew.checked)) {
+        chkIrr.checked = false;
+      } else if (type === 'irregular' && chkIrr.checked) {
+        chkOld.checked = false;
+        chkNew.checked = false;
       }
     }
 
     async function fetchServerData() {
       const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = `<tr><td colspan="4" class="py-3 text-muted">جاري الاتصال بالشيت وجلب البيانات...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="py-3 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>جاري جلب البيانات...</td></tr>`;
 
       try {
         const response = await fetch(SCRIPT_URL, { method: 'GET', redirect: 'follow' });
@@ -312,9 +308,11 @@
           extractUniquePeople(data);
           renderMainTable(peopleList);
           generateReports();
+        } else {
+          renderMainTable([]);
         }
       } catch (error) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-3">حدث خطأ أثناء جلب البيانات. أعد المحاولة.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-danger py-3">خطأ في الاتصال، اضغط "تحديث البيانات" لإعادة المحاولة.</td></tr>`;
       }
     }
 
@@ -411,13 +409,17 @@
       }).then(() => {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-save me-1"></i>حفظ البيانات';
+        
+        // إعادة ضبط الحقول ما عدا التاريخ
+        const savedDate = payload.date;
         document.getElementById('attendanceForm').reset();
-        document.getElementById('attendanceDate').value = payload.date;
-        alert('تم حفظ كافة البيانات والأنشطة بنجاح!');
+        document.getElementById('attendanceDate').value = savedDate;
+        
+        alert('تم تسجيل البيانات بنجاح!');
       }).catch(err => {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-save me-1"></i>حفظ البيانات';
-        alert('تم حفظ البيانات محلياً، وتوجد مشكلة بشبكة الشيت.');
+        alert('تم الحفظ محلياً.');
       });
     }
 
@@ -436,6 +438,7 @@
 
       let cMass = 0, cSunday = 0, cService = 0, cPrep = 0, cBible = 0, cAbsent = 0;
 
+      // فلترة البيانات على حسب التاريخ والمرحلة
       const filtered = recordsData.filter(item => {
         const matchDate = !selectedDate || item.date === selectedDate;
         const matchStage = selectedStage === 'all' || item.stage === selectedStage;
@@ -443,13 +446,14 @@
       });
 
       filtered.forEach(item => {
-        const isMass = item.attendedMass === true || item.attendedMass === 'true';
-        const isSunday = item.attendedSundaySchool === true || item.attendedSundaySchool === 'true';
-        const isService = item.attendedServiceMeeting === true || item.attendedServiceMeeting === 'true';
-        const isPrep = item.attendedPrep === true || item.attendedPrep === 'true';
+        const isMass = item.attendedMass === true;
+        const isSunday = item.attendedSundaySchool === true;
+        const isService = item.attendedServiceMeeting === true;
+        const isPrep = item.attendedPrep === true;
         
-        const isOld = item.bibleOld === true || item.bibleOld === 'true';
-        const isNew = item.bibleNew === true || item.bibleNew === 'true';
+        const isOld = item.bibleOld === true;
+        const isNew = item.bibleNew === true;
+        const isIrr = item.bibleIrregular === true;
 
         const stageLabel = getStageTitle(item.stage);
 
@@ -458,10 +462,13 @@
         if (isService) { cService++; listService.appendChild(createItem(item.name, stageLabel)); }
         if (isPrep) { cPrep++; listPrep.appendChild(createItem(item.name, stageLabel)); }
 
-        if (isOld || isNew) {
+        if (isOld || isNew || isIrr) {
           cBible++;
-          let bType = (isOld && isNew) ? 'عهد قديم + جديد' : (isOld ? 'عهد قديم' : 'عهد جديد');
-          listBible.appendChild(createItem(item.name, bType));
+          let bText = [];
+          if (isOld) bText.push('عهد قديم');
+          if (isNew) bText.push('عهد جديد');
+          if (isIrr) bText.push('غير منتظم');
+          listBible.appendChild(createItem(item.name, bText.join(' + ')));
         }
 
         if (!isMass && !isSunday && !isService && !isPrep) {
