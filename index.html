@@ -42,6 +42,11 @@
       visibility: visible;
       opacity: 1;
     }
+    .servant-badge {
+      background-color: #eef2ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body class="p-3 p-md-4">
@@ -64,14 +69,15 @@
       <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
     </header>
 
-    <!-- 0. قسم بيانات الخادم / المشرف (في بداية الصفحة) -->
+    <!-- 0. قسم إدخال واستعراض بيانات الخدام -->
     <section class="card shadow-sm mb-4 border-top border-4 border-info">
       <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-person-badge text-info me-2 fs-5"></i>بيانات الخادم / المشرف المسئول</span>
-        <span class="badge bg-info text-dark">بيانات أساسية</span>
+        <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>بيانات الخادم / المشرف المسئول</span>
+        <span class="badge bg-info text-dark">بيانات الأساس</span>
       </div>
       <div class="card-body bg-white">
-        <div class="row g-3">
+        <!-- نموذج إدخال الخادم -->
+        <div class="row g-3 mb-3">
           <div class="col-md-4">
             <label class="form-label fw-bold">اسم الخادم / المشرف:</label>
             <input type="text" id="servantName" class="form-control" placeholder="أدخل اسم الخادم المسؤول...">
@@ -83,6 +89,19 @@
           <div class="col-md-4">
             <label class="form-label fw-bold">القطاع / المنطقة:</label>
             <input type="text" id="servantSector" class="form-control" placeholder="أدخل اسم الكنيسة أو القطاع...">
+          </div>
+        </div>
+
+        <!-- كارت عرض البيانات النشطة للخدام -->
+        <div class="servant-badge p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <i class="bi bi-person-circle fs-4 text-primary me-2"></i>
+            <span class="fw-bold fs-6">الخادم الحالي: </span>
+            <span id="displayServantName" class="text-primary fw-bold fs-6">لم يتم التحديد</span>
+          </div>
+          <div class="d-flex gap-3 text-muted small">
+            <span><strong class="text-dark">الخدمة:</strong> <span id="displayServantRole">---</span></span>
+            <span><strong class="text-dark">القطاع:</strong> <span id="displayServantSector">---</span></span>
           </div>
         </div>
       </div>
@@ -145,11 +164,11 @@
       </div>
     </section>
 
-    <!-- 2. قسم التقارير والتصدير (الأنشطة الأربعة) -->
+    <!-- 2. قسم التقارير والتصدير -->
     <section id="reportsSection" class="card shadow-sm mb-4">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والغياب</h5>
-        <button class="btn btn-light btn-sm fw-bold" onclick="exportData()">
+        <button class="btn btn-light btn-sm fw-bold" onclick="fetchServerData()">
           <i class="bi bi-arrow-repeat text-primary me-1"></i>تحديث البيانات
         </button>
       </div>
@@ -251,18 +270,32 @@
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
       
-      // استرجاع بيانات الخادم المحفوظة محلياً إن وجدت
-      document.getElementById('servantName').value = localStorage.getItem('servantName') || '';
-      document.getElementById('servantRole').value = localStorage.getItem('servantRole') || '';
-      document.getElementById('servantSector').value = localStorage.getItem('servantSector') || '';
+      // استرجاع وعرض بيانات الخادم المحفوظة محلياً
+      updateServantUI();
 
       fetchServerData();
     });
 
-    // حفظ بيانات الخادم تلقائياً في LocalStorage
+    // دالة لتحديث وعرض بيانات الخادم لحظياً
+    function updateServantUI() {
+      const name = localStorage.getItem('servantName') || '';
+      const role = localStorage.getItem('servantRole') || '';
+      const sector = localStorage.getItem('servantSector') || '';
+
+      document.getElementById('servantName').value = name;
+      document.getElementById('servantRole').value = role;
+      document.getElementById('servantSector').value = sector;
+
+      document.getElementById('displayServantName').textContent = name || 'لم يتم التحديد';
+      document.getElementById('displayServantRole').textContent = role || '---';
+      document.getElementById('displayServantSector').textContent = sector || '---';
+    }
+
+    // ربط الحقول للتحديث الفوري للبيانات
     ['servantName', 'servantRole', 'servantSector'].forEach(id => {
       document.getElementById(id).addEventListener('input', (e) => {
         localStorage.setItem(id, e.target.value);
+        updateServantUI();
       });
     });
 
@@ -374,10 +407,6 @@
       li.className = `list-group-item py-1 px-2 border-0 border-bottom small ${extraClass}`;
       li.textContent = text;
       return li;
-    }
-
-    function exportData() {
-      fetchServerData();
     }
   </script>
 </body>
