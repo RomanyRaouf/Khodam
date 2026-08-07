@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة وتتبع الحضور والخدمة</title>
+  <title>نظام متابعة الحضور والخدمة</title>
   
   <!-- Bootstrap 5 RTL CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
@@ -12,12 +12,15 @@
   
   <style>
     body {
-      background-color: #f4f6f9;
+      background-color: #f8f9fa;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .card {
-      border-radius: 12px;
-      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .table-hover tbody tr:hover {
+      background-color: #f1f5f9;
     }
     .style-scroll::-webkit-scrollbar {
       width: 6px;
@@ -26,28 +29,6 @@
       background-color: rgba(0,0,0,0.2);
       border-radius: 4px;
     }
-    .dropdown-select-list {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      z-index: 1050;
-      background: #ffffff;
-      border: 1px solid #0d6efd;
-      border-radius: 0 0 8px 8px;
-      max-height: 220px;
-      overflow-y: auto;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-      display: none;
-    }
-    .dropdown-select-item {
-      padding: 10px 12px;
-      cursor: pointer;
-      border-bottom: 1px solid #f1f3f5;
-    }
-    .dropdown-select-item:hover {
-      background-color: #e7f1ff;
-    }
   </style>
 </head>
 <body class="p-3 p-md-4">
@@ -55,56 +36,38 @@
   <div class="container-fluid max-width-xl">
     
     <!-- الهيدر -->
-    <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-4 border-primary">
-      <h3 class="m-0 text-primary fw-bold">
-        <i class="bi bi-calendar-check me-2"></i>نظام متابعة الحضور والخدمة
-      </h3>
+    <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-5 border-primary">
+      <div>
+        <h3 class="m-0 text-primary fw-bold">
+          <i class="bi bi-people-fill me-2"></i>جدول البيانات ونظام الحضور
+        </h3>
+        <small class="text-muted">البيانات مجلوبة مباشرة من Google Sheets</small>
+      </div>
       <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
     </header>
 
-    <!-- 0. الخادم المشرف -->
-    <section class="card shadow-sm mb-4 border-top border-4 border-info">
-      <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>تحديد الخادم / المشرف المسئول</span>
-        <span class="badge bg-info text-dark">اختر من الشيت</span>
-      </div>
-      <div class="card-body bg-white">
-        <div class="row g-3">
-          <div class="col-md-4 position-relative">
-            <label class="form-label fw-bold">اسم الخادم المسئول:</label>
-            <input type="text" id="servantSearchInput" class="form-control" placeholder="انقر لاختيار الخادم من الشيت..." autocomplete="off">
-            <div id="servantListDropdown" class="dropdown-select-list"></div>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">الخدمة / المرحلة:</label>
-            <input type="text" id="servantRole" class="form-control" placeholder="مثال: أسرة إعدادي">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold">القطاع / الكنيسة:</label>
-            <input type="text" id="servantSector" class="form-control" placeholder="القطاع...">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 1. نموذج تسجيل الحضور -->
-    <section class="card shadow-sm mb-4">
-      <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-person-check me-2"></i>تسجيل حضور الخدام والمخدومين</span>
-        <span class="badge bg-warning text-dark"><i class="bi bi-search me-1"></i>اختر الاسم المجلوب من الشيت</span>
+    <!-- 1. نموذج تسجيل الحضور والخدمة -->
+    <section class="card mb-4 border-top border-4 border-primary">
+      <div class="card-header bg-white fw-bold py-3 text-primary d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person-check-fill me-2"></i>تسجيل حضور جديد</span>
+        <small class="text-muted">اختر من الجدول أو أدخل البيانات</small>
       </div>
       <div class="card-body">
         <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
           <div class="row g-3">
             
-            <div class="col-md-4 position-relative">
-              <label class="form-label fw-bold">اسم الخادم / المخدوم:</label>
-              <input type="text" id="personSearchInput" class="form-control" placeholder="ابحث أو اختر الاسم من الشيت..." required autocomplete="off">
-              <div id="personListDropdown" class="dropdown-select-list"></div>
+            <div class="col-md-2">
+              <label class="form-label fw-bold">الكود:</label>
+              <input type="text" id="personCode" class="form-control" placeholder="الكود" readonly>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">الاسم الكامل:</label>
+              <input type="text" id="personName" class="form-control" placeholder="اختر شخصاً من الجدول أسرع..." required>
             </div>
 
             <div class="col-md-3">
-              <label class="form-label fw-bold">المرحلة / الصف:</label>
+              <label class="form-label fw-bold">الخدمة / المرحلة:</label>
               <select id="personStage" class="form-select" required>
                 <option value="" selected disabled>اختر المرحلة...</option>
                 <option value="servant">خادم</option>
@@ -114,16 +77,17 @@
               </select>
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-3">
               <label class="form-label fw-bold">التاريخ:</label>
               <input type="date" id="attendanceDate" class="form-control" required>
             </div>
 
-            <div class="col-md-3 d-flex align-items-end">
-              <div class="d-flex gap-2 bg-light p-2 rounded w-100 justify-content-around border">
+            <div class="col-12">
+              <div class="d-flex flex-wrap gap-4 bg-light p-3 rounded border align-items-center">
+                <span class="fw-bold text-dark me-2">الأنشطة والحضور:</span>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="chkMass">
-                  <label class="form-check-label fw-bold text-success" for="chkMass">القداس</label>
+                  <label class="form-check-label fw-bold text-success" for="chkMass">القداس الإلهي</label>
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="chkSundaySchool">
@@ -133,23 +97,55 @@
                   <input class="form-check-input" type="checkbox" id="chkServiceMeeting">
                   <label class="form-check-label fw-bold text-warning" for="chkServiceMeeting">اجتماع الخدمة</label>
                 </div>
+                <div class="ms-auto">
+                  <button type="submit" class="btn btn-primary px-4 fw-bold">
+                    <i class="bi bi-save me-1"></i>حفظ الحضور
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div class="col-12 text-end">
-              <button type="submit" class="btn btn-primary px-4 fw-bold">
-                <i class="bi bi-check-circle me-1"></i>حفظ وتسجيل الحضور
-              </button>
-            </div>
           </div>
         </form>
       </div>
     </section>
 
-    <!-- 2. قسم التقارير -->
-    <section id="reportsSection" class="card shadow-sm mb-4">
-      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والغياب</h5>
+    <!-- 2. الجدول الرئيسي (الكود - الاسم - الخدمة) -->
+    <section class="card mb-4">
+      <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="m-0 fw-bold"><i class="bi bi-table me-2"></i>سجل الأسماء والبيانات المسجلة بالشيت</h5>
+        <div class="d-flex align-items-center gap-2 style-scroll" style="max-width: 350px; width: 100%;">
+          <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث بالكود أو الاسم..." onkeyup="filterTable()">
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive style-scroll" style="max-height: 380px;">
+          <table class="table table-hover align-middle m-0 text-center" id="mainDataTable">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th style="width: 15%;">الكود</th>
+                <th style="width: 45%;">الاسم</th>
+                <th style="width: 25%;">الخدمة / المرحلة</th>
+                <th style="width: 15%;">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td colspan="4" class="py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                  جاري تحميل البيانات من الشيت...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. قسم التقارير -->
+    <section id="reportsSection" class="card mb-4">
+      <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>تقارير الحضور والغياب</h5>
       </div>
       <div class="card-body">
         <div class="row g-3 mb-4 align-items-end">
@@ -158,7 +154,7 @@
             <input type="date" id="reportDate" class="form-control" onchange="generateReports()">
           </div>
           <div class="col-md-4">
-            <label for="reportStage" class="form-label fw-bold">المرحلة / الصف:</label>
+            <label for="reportStage" class="form-label fw-bold">تصفية حسب المرحلة:</label>
             <select id="reportStage" class="form-select" onchange="generateReports()">
               <option value="all">الكل (خدام ومخدومين)</option>
               <option value="servant">الخدام فقط</option>
@@ -169,7 +165,7 @@
           </div>
           <div class="col-md-4 text-end">
             <button class="btn btn-outline-primary w-100 fw-bold" onclick="generateReports()">
-              <i class="bi bi-funnel me-1"></i>عرض التقرير
+              <i class="bi bi-arrow-clockwise me-1"></i>تحديث التقرير
             </button>
           </div>
         </div>
@@ -181,7 +177,7 @@
                 <span>حضور القداس</span>
                 <span id="massCount" class="badge bg-white text-success fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 220px; overflow-y: auto;">
                 <ul id="massList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -193,7 +189,7 @@
                 <span>مدارس الأحد</span>
                 <span id="sundaySchoolCount" class="badge bg-white text-info fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 220px; overflow-y: auto;">
                 <ul id="sundaySchoolList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -205,7 +201,7 @@
                 <span>اجتماع الخدمة</span>
                 <span id="serviceMeetingCount" class="badge bg-dark text-white fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 220px; overflow-y: auto;">
                 <ul id="serviceMeetingList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -217,7 +213,7 @@
                 <span>الغياب الكلي</span>
                 <span id="absentCount" class="badge bg-white text-danger fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 220px; overflow-y: auto;">
                 <ul id="absentList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -233,80 +229,16 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
 
     let recordsData = [];
-    let registeredPeople = []; // يتم التعبئة تلقائياً من بيانات شيت جوجل فقط
-    let isDataLoaded = false;
+    let peopleList = [];
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('attendanceDate').value = today;
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
-      
-      bindCustomSelect('servantSearchInput', 'servantListDropdown', (item) => {
-        document.getElementById('servantSearchInput').value = item.name;
-        if (item.role) document.getElementById('servantRole').value = item.role;
-        if (item.sector) document.getElementById('servantSector').value = item.sector;
-      });
-
-      bindCustomSelect('personSearchInput', 'personListDropdown', (item) => {
-        document.getElementById('personSearchInput').value = item.name;
-        if (item.stage) document.getElementById('personStage').value = item.stage;
-      });
 
       fetchServerData();
     });
-
-    function bindCustomSelect(inputId, dropdownId, onSelect) {
-      const input = document.getElementById(inputId);
-      const dropdown = document.getElementById(dropdownId);
-
-      const render = (val = '') => {
-        dropdown.innerHTML = '';
-
-        if (!isDataLoaded && registeredPeople.length === 0) {
-          dropdown.innerHTML = `<div class="p-2 text-muted text-center small"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>جاري تحميل الأسماء من الشيت...</div>`;
-          dropdown.style.display = 'block';
-          return;
-        }
-
-        const searchKey = val.trim().toLowerCase();
-        const matches = registeredPeople.filter(p => 
-          !searchKey || p.name.toLowerCase().includes(searchKey) || (p.code && p.code.toLowerCase().includes(searchKey))
-        );
-
-        if (matches.length > 0) {
-          matches.forEach(p => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'dropdown-select-item d-flex justify-content-between align-items-center';
-            itemDiv.innerHTML = `
-              <div>
-                <strong class="text-dark">${p.name}</strong>
-                ${p.stage ? `<small class="text-muted ms-2">(${getStageTitle(p.stage)})</small>` : ''}
-              </div>
-              ${p.code ? `<span class="badge bg-light text-dark border">${p.code}</span>` : ''}
-            `;
-            itemDiv.onclick = (e) => {
-              e.stopPropagation();
-              onSelect(p);
-              dropdown.style.display = 'none';
-            };
-            dropdown.appendChild(itemDiv);
-          });
-        } else {
-          dropdown.innerHTML = `<div class="p-2 text-muted text-center small">لا يوجد اسم مطابق في الشيت</div>`;
-        }
-        dropdown.style.display = 'block';
-      };
-
-      input.addEventListener('focus', () => render(input.value));
-      input.addEventListener('input', () => render(input.value));
-
-      document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-          dropdown.style.display = 'none';
-        }
-      });
-    }
 
     async function fetchServerData() {
       try {
@@ -315,30 +247,72 @@
           const data = await response.json();
           if (Array.isArray(data)) {
             recordsData = data;
-            buildPeopleIndex(data);
+            extractUniquePeople(data);
+            renderMainTable(peopleList);
             generateReports();
           }
         }
       } catch (error) {
-        console.error('خطأ أثناء جلب البيانات من Google Sheets:', error);
-      } finally {
-        isDataLoaded = true;
+        console.error('خطأ أثناء جلب البيانات:', error);
+        document.getElementById('tableBody').innerHTML = `
+          <tr>
+            <td colspan="4" class="text-danger py-3">حدث خطأ أثناء اتصال الشبكة بالشيت. يرجى الملاحظة والمحاولة مجدداً.</td>
+          </tr>
+        `;
       }
     }
 
-    function buildPeopleIndex(data) {
-      registeredPeople = [];
-      data.forEach((item, index) => {
-        if (item.name && !registeredPeople.some(p => p.name === item.name)) {
-          registeredPeople.push({
+    function extractUniquePeople(data) {
+      peopleList = [];
+      data.forEach(item => {
+        if (item.name && !peopleList.some(p => p.name === item.name)) {
+          peopleList.push({
+            code: item.code || item.id || '---',
             name: item.name,
-            code: item.code || item.id || '',
-            stage: item.stage || '',
-            role: item.servantRole || item.role || '',
-            sector: item.servantSector || item.sector || ''
+            stage: item.stage || ''
           });
         }
       });
+    }
+
+    function renderMainTable(list) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-muted py-3">لا توجد أسماء مسجلة في الشيت حالياً</td></tr>`;
+        return;
+      }
+
+      list.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="badge bg-light text-dark border px-2 py-1">${item.code}</span></td>
+          <td class="fw-bold text-dark">${item.name}</td>
+          <td><span class="badge bg-secondary">${getStageTitle(item.stage)}</span></td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary fw-bold" onclick="selectPersonForAttendance('${item.code}', '${item.name}', '${item.stage}')">
+              <i class="bi bi-check2-square me-1"></i>تحديد
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectPersonForAttendance(code, name, stage) {
+      document.getElementById('personCode').value = code !== '---' ? code : '';
+      document.getElementById('personName').value = name;
+      if (stage) document.getElementById('personStage').value = stage;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const filtered = peopleList.filter(p => 
+        p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)
+      );
+      renderMainTable(filtered);
     }
 
     function getStageTitle(stage) {
@@ -347,20 +321,18 @@
         case 'prep': return 'إعدادي';
         case 'sec': return 'ثانوي';
         case 'servant': return 'خادم';
-        default: return stage || '';
+        default: return stage || 'غير محدد';
       }
     }
 
     function handleFormSubmit(e) {
       e.preventDefault();
 
-      const nameVal = document.getElementById('personSearchInput').value.trim();
+      const nameVal = document.getElementById('personName').value.trim();
       const stageVal = document.getElementById('personStage').value;
 
       const payload = {
-        servantName: document.getElementById('servantSearchInput').value,
-        servantRole: document.getElementById('servantRole').value,
-        servantSector: document.getElementById('servantSector').value,
+        code: document.getElementById('personCode').value,
         name: nameVal,
         stage: stageVal,
         date: document.getElementById('attendanceDate').value,
@@ -370,6 +342,8 @@
       };
 
       recordsData.push(payload);
+      extractUniquePeople(recordsData);
+      renderMainTable(peopleList);
       generateReports();
 
       fetch(SCRIPT_URL, {
@@ -381,7 +355,7 @@
 
       document.getElementById('attendanceForm').reset();
       document.getElementById('attendanceDate').value = payload.date;
-      alert('تم تسجيل الحضور بنجاح!');
+      alert('تم تسجيل البيانات بنجاح!');
     }
 
     function generateReports() {
