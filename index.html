@@ -268,12 +268,12 @@
       </div>
 
       <div class="form-group">
-        <label for="reportFilter">الفلترة حسب النشاط:</label>
+        <label for="reportFilter">الفلترة حسب النشاط (من ورقة السجل):</label>
         <select id="reportFilter">
           <option value="all">📊 عرض جميع المسجلين</option>
-          <option value="qaddas">⛪ حضور القداس فقط</option>
-          <option value="sundaySchool">🏫 حضور مدارس الأحد فقط</option>
-          <option value="meeting">🤝 حضور اجتماع الخدمة فقط</option>
+          <option value="qaddas">⛪ حضور القداس فقط (العمود D)</option>
+          <option value="sundaySchool">🏫 حضور مدارس الأحد فقط (العمود E)</option>
+          <option value="meeting">🤝 حضور اجتماع الخدمة فقط (العمود F)</option>
           <option value="present">✅ حضور أي نشاط</option>
           <option value="absent">❌ الغائبون بالكامل</option>
         </select>
@@ -290,11 +290,11 @@
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdR74jtkyedk3qpsg1GD4DF5wSgNDGczQ2K5voIrKzYaaQDq4z1g1JC2acw5mcdFX0Cg/exec";
   let allServants = [];
 
-  // ضبط التواريخ الافتراضية عند التحميل
+  // ضبط التواريخ الافتراضية
   document.getElementById('regDate').valueAsDate = new Date();
   document.getElementById('reportDate').valueAsDate = new Date();
 
-  // تحميل قائمة الخدام فور فتح الصفحة
+  // تحميل قائمة الخدام عند الفتح
   window.addEventListener('DOMContentLoaded', loadServantsData);
 
   function loadServantsData() {
@@ -350,7 +350,6 @@
     });
   }
 
-  // التعبئة التلقائية عند إدخال الكود أو اختيار الخادم
   function onServantSelect() {
     const val = document.getElementById('servantCode').value.trim();
     const found = allServants.find(s => s.code.toString() === val || s.name === val);
@@ -362,7 +361,6 @@
     }
   }
 
-  // التنقل بين التبويبات
   function switchTab(tabId, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -371,7 +369,6 @@
     btn.classList.add('active');
   }
 
-  // إرسال الحضور
   function submitAttendance(e) {
     e.preventDefault();
     const msg = document.getElementById('formMsg');
@@ -383,6 +380,7 @@
 
     const payload = {
       action: "saveData",
+      sheetName: "السجل",
       date: document.getElementById('regDate').value,
       code: document.getElementById('servantCode').value,
       name: document.getElementById('servantName').value,
@@ -426,7 +424,7 @@
     document.getElementById('regDate').valueAsDate = new Date();
   }
 
-  // جلب التقرير
+  // جلب التقرير المفلتر من ورقة "السجل" مع مراعاة الأعمدة (D, E, F)
   function getDailyReport() {
     const dateVal = document.getElementById('reportDate').value;
     const filterVal = document.getElementById('reportFilter').value;
@@ -437,9 +435,10 @@
       return;
     }
 
-    resultsDiv.innerHTML = "<div style='text-align:center; padding: 20px;'>⏳ جاري تحميل البيانات...</div>";
+    resultsDiv.innerHTML = "<div style='text-align:center; padding: 20px;'>⏳ جاري تحميل البيانات من ورقة السجل...</div>";
 
-    const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}`;
+    // تمرير أسماء الورقة والأعمدة للسكربت لتطبيق التغيير المطلوبة
+    const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&sheetName=${encodeURIComponent("السجل")}&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}&colQaddas=D&colSundaySchool=E&colMeeting=F`;
 
     fetch(url)
       .then(response => response.json())
@@ -458,7 +457,7 @@
 
   function renderDailyReportTable(records, container) {
     if (!records || records.length === 0) {
-      container.innerHTML = "<div style='text-align:center; padding: 20px; color: #6c757d;'>لا توجد بيانات مسجلة لهذا التاريخ.</div>";
+      container.innerHTML = "<div style='text-align:center; padding: 20px; color: #6c757d;'>لا توجد بيانات مسجلة لهذا التاريخ في ورقة السجل.</div>";
       return;
     }
 
@@ -472,9 +471,9 @@
             <th>الكود</th>
             <th>الاسم</th>
             <th>الخدمة</th>
-            <th>القداس</th>
-            <th>مدارس الأحد</th>
-            <th>الاجتماع</th>
+            <th>القداس (D)</th>
+            <th>مدارس الأحد (E)</th>
+            <th>الاجتماع (F)</th>
             <th>التحضير</th>
             <th>القراءة</th>
           </tr>
