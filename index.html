@@ -9,7 +9,6 @@
       --primary-color: #5c1d24; /* لون عنابي كنسي */
       --secondary-color: #8b263e;
       --gold-color: #d4af37; /* لون ذهبي */
-      --gold-hover: #b89628;
       --bg-color: #fdfaf7; /* خلفية دافئة مريحة للعين */
       --card-bg: #ffffff;
       --text-color: #2c1810;
@@ -136,7 +135,7 @@
       background: #fff;
       border: 1px solid var(--border-color);
       border-radius: 0 0 8px 8px;
-      max-height: 180px;
+      max-height: 200px;
       overflow-y: auto;
       z-index: 100;
       box-shadow: 0 6px 12px rgba(0,0,0,0.15);
@@ -262,7 +261,7 @@
         <div class="grid-2">
           <div class="form-group">
             <label>البحث / اكتب اسم الخادم أو الكود:</label>
-            <input type="text" id="searchInput" placeholder="ابحث باسم الخادم..." oninput="onSearchServants(this.value)" autocomplete="off">
+            <input type="text" id="searchInput" placeholder="ابحث بأي جزء من الاسم أو الكود..." oninput="onSearchServants(this.value)" autocomplete="off">
             <div id="suggestions" class="suggestions" style="display: none;"></div>
           </div>
 
@@ -376,7 +375,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHhiRL5LisxcWR88ssC7PKaY89lwqZpRH0u3C9R40caQ3SC-idGh1jFxin_mxeonRKiA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
       const today = new Date().toISOString().split('T')[0];
@@ -428,7 +427,7 @@
 
         const url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(query)}&callback=${cbName}`;
         addScriptTag(url, cbName);
-      }, 250);
+      }, 200);
     }
 
     // --- 2. حفظ البيانات ---
