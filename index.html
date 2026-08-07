@@ -42,10 +42,29 @@
       visibility: visible;
       opacity: 1;
     }
-    .servant-badge {
-      background-color: #eef2ff;
-      border: 1px solid #c7d2fe;
-      border-radius: 8px;
+    /* قائمة الاقتراحات السريعة للبحث */
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #fff;
+      border-bottom: 1px solid #d4d4d4;
+    }
+    .autocomplete-items div:hover {
+      background-color: #e9ecef;
     }
   </style>
 </head>
@@ -69,59 +88,50 @@
       <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
     </header>
 
-    <!-- 0. قسم إدخال واستعراض بيانات الخدام -->
+    <!-- 0. قسم اختيار / تسجيل بيانات الخادم المشرف -->
     <section class="card shadow-sm mb-4 border-top border-4 border-info">
       <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
         <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>بيانات الخادم / المشرف المسئول</span>
         <span class="badge bg-info text-dark">بيانات الأساس</span>
       </div>
       <div class="card-body bg-white">
-        <!-- نموذج إدخال الخادم -->
-        <div class="row g-3 mb-3">
-          <div class="col-md-4">
-            <label class="form-label fw-bold">اسم الخادم / المشرف:</label>
-            <input type="text" id="servantName" class="form-control" placeholder="أدخل اسم الخادم المسؤول...">
+        <div class="row g-3">
+          <div class="col-md-4 position-relative">
+            <label class="form-label fw-bold">اسم أو كود الخادم المسئول:</label>
+            <input type="text" id="servantName" class="form-control" placeholder="ابحث بالاسم أو الكود..." autocomplete="off">
+            <div id="servantAutocompleteList" class="autocomplete-items"></div>
           </div>
           <div class="col-md-4">
             <label class="form-label fw-bold">الخدمة / المرحلة:</label>
-            <input type="text" id="servantRole" class="form-control" placeholder="مثال: أسرة أبتدائي / إعدادي...">
+            <input type="text" id="servantRole" class="form-control" placeholder="الخدمة...">
           </div>
           <div class="col-md-4">
             <label class="form-label fw-bold">القطاع / المنطقة:</label>
-            <input type="text" id="servantSector" class="form-control" placeholder="أدخل اسم الكنيسة أو القطاع...">
-          </div>
-        </div>
-
-        <!-- كارت عرض البيانات النشطة للخدام -->
-        <div class="servant-badge p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div>
-            <i class="bi bi-person-circle fs-4 text-primary me-2"></i>
-            <span class="fw-bold fs-6">الخادم الحالي: </span>
-            <span id="displayServantName" class="text-primary fw-bold fs-6">لم يتم التحديد</span>
-          </div>
-          <div class="d-flex gap-3 text-muted small">
-            <span><strong class="text-dark">الخدمة:</strong> <span id="displayServantRole">---</span></span>
-            <span><strong class="text-dark">القطاع:</strong> <span id="displayServantSector">---</span></span>
+            <input type="text" id="servantSector" class="form-control" placeholder="القطاع...">
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 1. قسم إدخال وتسجيل الحضور -->
+    <!-- 1. قسم تسجيل حضور الخدام والمخدومين مع البحث والتسجيل السريع -->
     <section class="card shadow-sm mb-4">
-      <div class="card-header bg-dark text-white fw-bold">
-        <i class="bi bi-person-check me-2"></i>تسجيل حضور جديد
+      <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person-check me-2"></i>تسجيل حضور (خدام / مخدومين)</span>
+        <small class="text-warning"><i class="bi bi-lightning-charge me-1"></i>ابحث بالكود أو الاسم للتحضير السريع</small>
       </div>
       <div class="card-body">
         <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
           <div class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label fw-bold">اسم الشخص / المخدوم:</label>
-              <input type="text" id="personName" class="form-control" placeholder="أدخل الاسم..." required>
-            </div>
             
+            <!-- البحث عن اسم/كود الشخص -->
+            <div class="col-md-4 position-relative">
+              <label class="form-label fw-bold">الاسم / الكود:</label>
+              <input type="text" id="personName" class="form-control" placeholder="اكتب جزء من الاسم أو الكود..." required autocomplete="off">
+              <div id="personAutocompleteList" class="autocomplete-items"></div>
+            </div>
+
             <div class="col-md-3">
-              <label class="form-label fw-bold">المرحلة / الصف:</label>
+              <label class="form-label fw-bold">المرحلة / الخدمة:</label>
               <select id="personStage" class="form-select" required>
                 <option value="" selected disabled>اختر المرحلة...</option>
                 <option value="primary">ابتدائي</option>
@@ -137,8 +147,8 @@
             </div>
 
             <!-- خيارات الأنشطة الثلاثة -->
-            <div class="col-md-4 d-flex align-items-end">
-              <div class="d-flex gap-3 bg-light p-2 rounded w-100 justify-content-around border">
+            <div class="col-md-3 d-flex align-items-end">
+              <div class="d-flex gap-2 bg-light p-2 rounded w-100 justify-content-around border">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="chkMass">
                   <label class="form-check-label fw-bold text-success" for="chkMass">القداس</label>
@@ -156,7 +166,7 @@
 
             <div class="col-12 text-end">
               <button type="submit" class="btn btn-primary px-4 fw-bold">
-                <i class="bi bi-save me-1"></i>حفظ السجل
+                <i class="bi bi-save me-1"></i>حفظ وتسجيل الحضور
               </button>
             </div>
           </div>
@@ -164,7 +174,7 @@
       </div>
     </section>
 
-    <!-- 2. قسم التقارير والتصدير -->
+    <!-- 2. قسم التقارير -->
     <section id="reportsSection" class="card shadow-sm mb-4">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والغياب</h5>
@@ -183,11 +193,11 @@
           <div class="col-md-4">
             <label for="reportStage" class="form-label fw-bold">المرحلة / الصف:</label>
             <select id="reportStage" class="form-select" onchange="generateReports()">
-              <option value="all">كل المراحل</option>
+              <option value="all">كل المراحل والخدام</option>
+              <option value="servant">الخدام فقط</option>
               <option value="primary">ابتدائي</option>
               <option value="prep">إعدادي</option>
               <option value="sec">ثانوي</option>
-              <option value="servant">خادم</option>
             </select>
           </div>
           <div class="col-md-4 text-end">
@@ -197,10 +207,8 @@
           </div>
         </div>
 
-        <!-- شبكة التقارير للأقسام الأربعة -->
+        <!-- شبكة التقارير -->
         <div class="row g-3">
-          
-          <!-- 1. حضور القداس -->
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-success">
               <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
@@ -213,7 +221,6 @@
             </div>
           </div>
 
-          <!-- 2. حضور مدارس الأحد -->
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-info">
               <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
@@ -226,7 +233,6 @@
             </div>
           </div>
 
-          <!-- 3. حضور اجتماع الخدمة -->
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-warning">
               <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
@@ -239,7 +245,6 @@
             </div>
           </div>
 
-          <!-- 4. الغياب الكلي -->
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-danger">
               <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
@@ -251,18 +256,20 @@
               </div>
             </div>
           </div>
-
         </div>
+
       </div>
     </section>
 
   </div>
 
-  <!-- JavaScript Scripting -->
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
 
     let recordsData = [];
+    
+    // دليل الخدام والأشخاص المسجلين سابقاً (يتم تجميعه تلقائياً مع الكود والخدمة)
+    let knownPeopleMap = new Map();
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -270,34 +277,71 @@
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
       
-      // استرجاع وعرض بيانات الخادم المحفوظة محلياً
-      updateServantUI();
+      // استرجاع البيانات المحفوظة
+      document.getElementById('servantName').value = localStorage.getItem('servantName') || '';
+      document.getElementById('servantRole').value = localStorage.getItem('servantRole') || '';
+      document.getElementById('servantSector').value = localStorage.getItem('servantSector') || '';
 
+      setupAutocomplete();
       fetchServerData();
     });
 
-    // دالة لتحديث وعرض بيانات الخادم لحظياً
-    function updateServantUI() {
-      const name = localStorage.getItem('servantName') || '';
-      const role = localStorage.getItem('servantRole') || '';
-      const sector = localStorage.getItem('servantSector') || '';
+    // إعداد التكملة التلقائية عند كتابة الاسم أو الكود
+    function setupAutocomplete() {
+      setupInputSearch('personName', 'personAutocompleteList', (selected) => {
+        document.getElementById('personName').value = selected.name;
+        if (selected.stage) document.getElementById('personStage').value = selected.stage;
+      });
 
-      document.getElementById('servantName').value = name;
-      document.getElementById('servantRole').value = role;
-      document.getElementById('servantSector').value = sector;
-
-      document.getElementById('displayServantName').textContent = name || 'لم يتم التحديد';
-      document.getElementById('displayServantRole').textContent = role || '---';
-      document.getElementById('displayServantSector').textContent = sector || '---';
+      setupInputSearch('servantName', 'servantAutocompleteList', (selected) => {
+        document.getElementById('servantName').value = selected.name;
+        if (selected.role) document.getElementById('servantRole').value = selected.role;
+        if (selected.sector) document.getElementById('servantSector').value = selected.sector;
+        
+        localStorage.setItem('servantName', selected.name);
+        if(selected.role) localStorage.setItem('servantRole', selected.role);
+        if(selected.sector) localStorage.setItem('servantSector', selected.sector);
+      });
     }
 
-    // ربط الحقول للتحديث الفوري للبيانات
-    ['servantName', 'servantRole', 'servantSector'].forEach(id => {
-      document.getElementById(id).addEventListener('input', (e) => {
-        localStorage.setItem(id, e.target.value);
-        updateServantUI();
+    function setupInputSearch(inputId, listId, onSelect) {
+      const input = document.getElementById(inputId);
+      const list = document.getElementById(listId);
+
+      input.addEventListener('input', function() {
+        const val = this.value.trim().toLowerCase();
+        list.innerHTML = '';
+        if (!val) return;
+
+        let matchesCount = 0;
+        knownPeopleMap.forEach((item) => {
+          const matchName = item.name.toLowerCase().includes(val);
+          const matchCode = item.code && item.code.toLowerCase().includes(val);
+          
+          if (matchName || matchCode) {
+            matchesCount++;
+            const div = document.createElement('div');
+            div.className = 'd-flex justify-content-between align-items-center';
+            div.innerHTML = `
+              <div>
+                <strong>${item.name}</strong> 
+                <small class="text-muted">(${item.roleOrStage || 'خادم/مخدوم'})</small>
+              </div>
+              <span class="badge bg-secondary">${item.code || 'بدون كود'}</span>
+            `;
+            div.addEventListener('click', () => {
+              onSelect(item);
+              list.innerHTML = '';
+            });
+            list.appendChild(div);
+          }
+        });
       });
-    });
+
+      document.addEventListener('click', (e) => {
+        if (e.target !== input) list.innerHTML = '';
+      });
+    }
 
     function toggleSpinner(show) {
       const spinner = document.getElementById('loadingOverlay');
@@ -312,6 +356,10 @@
         if (response.ok) {
           const data = await response.json();
           recordsData = data || [];
+          
+          // إستخراج وبناء دليل الخدام/الأشخاص بناءً على البيانات المحفوظة
+          buildKnownPeopleIndex(recordsData);
+          
           generateReports();
         }
       } catch (error) {
@@ -321,15 +369,46 @@
       }
     }
 
+    function buildKnownPeopleIndex(data) {
+      knownPeopleMap.clear();
+      
+      data.forEach((item, idx) => {
+        if (item.name) {
+          const code = `SERV-${100 + idx}`;
+          knownPeopleMap.set(item.name, {
+            name: item.name,
+            code: item.code || code,
+            stage: item.stage,
+            roleOrStage: getStageTitle(item.stage),
+            role: item.servantRole,
+            sector: item.servantSector
+          });
+        }
+      });
+    }
+
+    function getStageTitle(stage) {
+      switch(stage) {
+        case 'primary': return 'ابتدائي';
+        case 'prep': return 'إعدادي';
+        case 'sec': return 'ثانوي';
+        case 'servant': return 'خادم';
+        default: return stage || 'غير محدد';
+      }
+    }
+
     async function handleFormSubmit(e) {
       e.preventDefault();
+
+      const nameInput = document.getElementById('personName').value;
+      const stageInput = document.getElementById('personStage').value;
 
       const payload = {
         servantName: document.getElementById('servantName').value,
         servantRole: document.getElementById('servantRole').value,
         servantSector: document.getElementById('servantSector').value,
-        name: document.getElementById('personName').value,
-        stage: document.getElementById('personStage').value,
+        name: nameInput,
+        stage: stageInput,
         date: document.getElementById('attendanceDate').value,
         attendedMass: document.getElementById('chkMass').checked,
         attendedSundaySchool: document.getElementById('chkSundaySchool').checked,
@@ -347,6 +426,15 @@
         });
 
         recordsData.push(payload);
+        
+        // تحديث الدليل المباشر
+        knownPeopleMap.set(nameInput, {
+          name: nameInput,
+          code: `SERV-${100 + knownPeopleMap.size}`,
+          stage: stageInput,
+          roleOrStage: getStageTitle(stageInput)
+        });
+
         generateReports();
         
         document.getElementById('attendanceForm').reset();
@@ -387,12 +475,14 @@
         const isSunday = item.attendedSundaySchool === true || item.attendedSundaySchool === 'true';
         const isService = item.attendedServiceMeeting === true || item.attendedServiceMeeting === 'true';
 
-        if (isMass) { cMass++; massList.appendChild(createListItem(item.name)); }
-        if (isSunday) { cSunday++; sundaySchoolList.appendChild(createListItem(item.name)); }
-        if (isService) { cService++; serviceMeetingList.appendChild(createListItem(item.name)); }
+        const stageLabel = getStageTitle(item.stage);
+
+        if (isMass) { cMass++; massList.appendChild(createListItem(item.name, stageLabel)); }
+        if (isSunday) { cSunday++; sundaySchoolList.appendChild(createListItem(item.name, stageLabel)); }
+        if (isService) { cService++; serviceMeetingList.appendChild(createListItem(item.name, stageLabel)); }
         if (!isMass && !isSunday && !isService) {
           cAbsent++;
-          absentList.appendChild(createListItem(item.name, 'text-danger fw-bold'));
+          absentList.appendChild(createListItem(item.name, stageLabel, 'text-danger fw-bold'));
         }
       });
 
@@ -402,10 +492,10 @@
       document.getElementById('absentCount').textContent = cAbsent;
     }
 
-    function createListItem(text, extraClass = '') {
+    function createListItem(text, badgeText, extraClass = '') {
       const li = document.createElement('li');
-      li.className = `list-group-item py-1 px-2 border-0 border-bottom small ${extraClass}`;
-      li.textContent = text;
+      li.className = `list-group-item py-1 px-2 border-0 border-bottom small d-flex justify-content-between align-items-center ${extraClass}`;
+      li.innerHTML = `<span>${text}</span> <span class="badge bg-light text-dark border">${badgeText}</span>`;
       return li;
     }
   </script>
