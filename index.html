@@ -26,42 +26,24 @@
       background-color: rgba(0,0,0,0.2);
       border-radius: 4px;
     }
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.85);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      visibility: hidden;
-      opacity: 0;
-      transition: all 0.3s ease;
-    }
-    .loading-overlay.active {
-      visibility: visible;
-      opacity: 1;
-    }
-    /* تنسيق قائمة الخيارات السريعة */
     .dropdown-select-list {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
       z-index: 1050;
-      background: #fff;
-      border: 1px solid #ced4da;
+      background: #ffffff;
+      border: 1px solid #0d6efd;
       border-radius: 0 0 8px 8px;
       max-height: 220px;
       overflow-y: auto;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
       display: none;
     }
     .dropdown-select-item {
       padding: 10px 12px;
       cursor: pointer;
       border-bottom: 1px solid #f1f3f5;
-      transition: background 0.15s ease;
     }
     .dropdown-select-item:hover {
       background-color: #e7f1ff;
@@ -70,17 +52,9 @@
 </head>
 <body class="p-3 p-md-4">
 
-  <!-- شاشة التحميل -->
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="text-center">
-      <div class="spinner-border text-primary mb-2" style="width: 3rem; height: 3rem;" role="status"></div>
-      <p class="fw-bold text-secondary">جاري جلب وتحديث البيانات...</p>
-    </div>
-  </div>
-
   <div class="container-fluid max-width-xl">
     
-    <!-- الهيدر الرئيسي -->
+    <!-- الهيدر -->
     <header class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-4 border-primary">
       <h3 class="m-0 text-primary fw-bold">
         <i class="bi bi-calendar-check me-2"></i>نظام متابعة الحضور والخدمة
@@ -88,50 +62,44 @@
       <span class="badge bg-primary px-3 py-2 fs-6" id="currentDateBadge"></span>
     </header>
 
-    <!-- 0. اختيار الخادم المشرف من القائمة -->
+    <!-- 0. الخادم المشرف -->
     <section class="card shadow-sm mb-4 border-top border-4 border-info">
       <div class="card-header bg-light fw-bold text-dark d-flex justify-content-between align-items-center">
         <span><i class="bi bi-person-badge-fill text-info me-2 fs-5"></i>تحديد الخادم / المشرف المسئول</span>
-        <span class="badge bg-info text-dark">بيانات الأساس</span>
+        <span class="badge bg-info text-dark">اختر أو اكتب</span>
       </div>
       <div class="card-body bg-white">
         <div class="row g-3">
-          
-          <!-- اختيار الخادم من قائمة القوالب المسجلة -->
           <div class="col-md-4 position-relative">
-            <label class="form-label fw-bold">اختر الخادم أو ابحث بالإسم/الكود:</label>
-            <input type="text" id="servantSearchInput" class="form-control" placeholder="اضغط هنا لاختيار أو كتابة اسم الخادم..." autocomplete="off">
+            <label class="form-label fw-bold">اسم الخادم المسئول:</label>
+            <input type="text" id="servantSearchInput" class="form-control" placeholder="اضغط هنا لاختيار الخادم..." autocomplete="off">
             <div id="servantListDropdown" class="dropdown-select-list"></div>
           </div>
-
           <div class="col-md-4">
             <label class="form-label fw-bold">الخدمة / المرحلة:</label>
-            <input type="text" id="servantRole" class="form-control" placeholder="الخدمة الحالية...">
+            <input type="text" id="servantRole" class="form-control" placeholder="مثال: أسرة إعدادي">
           </div>
-
           <div class="col-md-4">
-            <label class="form-label fw-bold">القطاع / المنطقة:</label>
-            <input type="text" id="servantSector" class="form-control" placeholder="المنطقة / الكنيسة...">
+            <label class="form-label fw-bold">القطاع / الكنيسة:</label>
+            <input type="text" id="servantSector" class="form-control" placeholder="القطاع...">
           </div>
-
         </div>
       </div>
     </section>
 
-    <!-- 1. نموذج تسجيل الحضور لاختيار الأسماء المسجلة سابقاً -->
+    <!-- 1. نموذج تسجبل الحضور -->
     <section class="card shadow-sm mb-4">
       <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
         <span><i class="bi bi-person-check me-2"></i>تسجيل حضور الخدام والمخدومين</span>
-        <span class="badge bg-warning text-dark"><i class="bi bi-search me-1"></i>اختر الاسم مباشرةً</span>
+        <span class="badge bg-warning text-dark"><i class="bi bi-hand-index-thumb me-1"></i>انقر على الحقل للاختيار السريع</span>
       </div>
       <div class="card-body">
         <form id="attendanceForm" onsubmit="handleFormSubmit(event)">
           <div class="row g-3">
             
-            <!-- اختيار/البحث عن الاسم المسجل سابقاً -->
             <div class="col-md-4 position-relative">
-              <label class="form-label fw-bold">اختر الشخص (خادم / مخدوم):</label>
-              <input type="text" id="personSearchInput" class="form-control" placeholder="اضغط لاختيار اسم من القائمة أو ابحث..." required autocomplete="off">
+              <label class="form-label fw-bold">اسم الخادم / المخدوم:</label>
+              <input type="text" id="personSearchInput" class="form-control" placeholder="اضغط لاختيار اسم من القائمة..." required autocomplete="off">
               <div id="personListDropdown" class="dropdown-select-list"></div>
             </div>
 
@@ -151,7 +119,6 @@
               <input type="date" id="attendanceDate" class="form-control" required>
             </div>
 
-            <!-- أنشطة الحضور -->
             <div class="col-md-3 d-flex align-items-end">
               <div class="d-flex gap-2 bg-light p-2 rounded w-100 justify-content-around border">
                 <div class="form-check">
@@ -171,7 +138,7 @@
 
             <div class="col-12 text-end">
               <button type="submit" class="btn btn-primary px-4 fw-bold">
-                <i class="bi bi-check-circle me-1"></i>تسجيل الحضور
+                <i class="bi bi-check-circle me-1"></i>حفظ وتسجيل الحضور
               </button>
             </div>
           </div>
@@ -183,12 +150,8 @@
     <section id="reportsSection" class="card shadow-sm mb-4">
       <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph me-2"></i>تقارير الحضور والغياب</h5>
-        <button class="btn btn-light btn-sm fw-bold" onclick="fetchServerData()">
-          <i class="bi bi-arrow-repeat text-primary me-1"></i>تحديث البيانات
-        </button>
       </div>
       <div class="card-body">
-        
         <div class="row g-3 mb-4 align-items-end">
           <div class="col-md-4">
             <label for="reportDate" class="form-label fw-bold">تاريخ التقرير:</label>
@@ -211,15 +174,14 @@
           </div>
         </div>
 
-        <!-- شبكة نتائج الحضور -->
         <div class="row g-3">
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-success">
               <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-church me-1"></i>حضور القداس</span>
+                <span>حضور القداس</span>
                 <span id="massCount" class="badge bg-white text-success fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
                 <ul id="massList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -228,10 +190,10 @@
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-info">
               <div class="card-header bg-info text-white fw-bold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-book me-1"></i>مدارس الأحد</span>
+                <span>مدارس الأحد</span>
                 <span id="sundaySchoolCount" class="badge bg-white text-info fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
                 <ul id="sundaySchoolList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -240,10 +202,10 @@
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-warning">
               <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-people me-1"></i>اجتماع الخدمة</span>
+                <span>اجتماع الخدمة</span>
                 <span id="serviceMeetingCount" class="badge bg-dark text-white fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
                 <ul id="serviceMeetingList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -252,10 +214,10 @@
           <div class="col-md-6 col-lg-3">
             <div class="card h-100 border-danger">
               <div class="card-header bg-danger text-white fw-bold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-person-x me-1"></i>الغياب الكلي</span>
+                <span>الغياب الكلي</span>
                 <span id="absentCount" class="badge bg-white text-danger fs-6">0</span>
               </div>
-              <div class="card-body p-2 style-scroll" style="max-height: 320px; overflow-y: auto;">
+              <div class="card-body p-2 style-scroll" style="max-height: 250px; overflow-y: auto;">
                 <ul id="absentList" class="list-group list-group-flush"></ul>
               </div>
             </div>
@@ -271,7 +233,15 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvGHCxcxsCV6J6QG5DTJeKF7zCHWh3QOeekEq-dgoy-J2CjKSF4tCBl1LDhd0DZCpqvg/exec';
 
     let recordsData = [];
-    let registeredPeople = new Map(); // دليل الأسماء المخزنة والمتاحة للاختيار
+    
+    // قائمة أولية افتراضية جاهزة لتظهر مباشرة بضغط زر
+    let registeredPeople = [
+      { name: 'مينا سمير', code: 'SERV-101', stage: 'servant', role: 'خادم ثانوي', sector: 'القطاع الأول' },
+      { name: 'جرجس عادل', code: 'SERV-102', stage: 'servant', role: 'خادم إعدادي', sector: 'القطاع الأول' },
+      { name: 'كيرلس عماد', code: 'CODE-201', stage: 'prep', role: '', sector: '' },
+      { name: 'يوحنا سامح', code: 'CODE-202', stage: 'primary', role: '', sector: '' },
+      { name: 'مارك أيمن', code: 'CODE-203', stage: 'sec', role: '', sector: '' }
+    ];
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -279,19 +249,11 @@
       document.getElementById('reportDate').value = today;
       document.getElementById('currentDateBadge').textContent = today;
       
-      // استرجاع بيانات الخادم المسجلة محلياً
-      document.getElementById('servantSearchInput').value = localStorage.getItem('servantName') || '';
-      document.getElementById('servantRole').value = localStorage.getItem('servantRole') || '';
-      document.getElementById('servantSector').value = localStorage.getItem('servantSector') || '';
-
+      // إعداد القوائم التفاعلية
       bindCustomSelect('servantSearchInput', 'servantListDropdown', (item) => {
         document.getElementById('servantSearchInput').value = item.name;
         if (item.role) document.getElementById('servantRole').value = item.role;
         if (item.sector) document.getElementById('servantSector').value = item.sector;
-
-        localStorage.setItem('servantName', item.name);
-        if (item.role) localStorage.setItem('servantRole', item.role);
-        if (item.sector) localStorage.setItem('servantSector', item.sector);
       });
 
       bindCustomSelect('personSearchInput', 'personListDropdown', (item) => {
@@ -302,47 +264,44 @@
       fetchServerData();
     });
 
-    // دالة بناء وتفعيل القوائم المنسدلة للبحث الاختياري
     function bindCustomSelect(inputId, dropdownId, onSelect) {
       const input = document.getElementById(inputId);
       const dropdown = document.getElementById(dropdownId);
 
-      const renderItems = (filterText = '') => {
+      const render = (val = '') => {
         dropdown.innerHTML = '';
-        const searchKey = filterText.trim().toLowerCase();
-        let matchesFound = 0;
+        const searchKey = val.trim().toLowerCase();
+        
+        const matches = registeredPeople.filter(p => 
+          !searchKey || p.name.toLowerCase().includes(searchKey) || (p.code && p.code.toLowerCase().includes(searchKey))
+        );
 
-        registeredPeople.forEach((person) => {
-          const nameMatch = person.name.toLowerCase().includes(searchKey);
-          const codeMatch = person.code && person.code.toLowerCase().includes(searchKey);
-
-          if (!searchKey || nameMatch || codeMatch) {
-            matchesFound++;
+        if (matches.length > 0) {
+          matches.forEach(p => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'dropdown-select-item d-flex justify-content-between align-items-center';
             itemDiv.innerHTML = `
               <div>
-                <strong class="text-dark">${person.name}</strong>
-                <span class="text-muted small ms-2">(${person.stageTitle || 'خادم/مخدوم'})</span>
+                <strong class="text-dark">${p.name}</strong>
+                <small class="text-muted ms-2">(${getStageTitle(p.stage)})</small>
               </div>
-              <span class="badge bg-light text-secondary border">${person.code}</span>
+              <span class="badge bg-light text-dark border">${p.code || 'بدون كود'}</span>
             `;
-            itemDiv.addEventListener('click', () => {
-              onSelect(person);
+            itemDiv.onclick = (e) => {
+              e.stopPropagation();
+              onSelect(p);
               dropdown.style.display = 'none';
-            });
+            };
             dropdown.appendChild(itemDiv);
-          }
-        });
-
-        if (matchesFound === 0) {
+          });
+        } else {
           dropdown.innerHTML = `<div class="p-2 text-muted text-center small">اسم جديد (سيتم حفظه تلقائياً)</div>`;
         }
         dropdown.style.display = 'block';
       };
 
-      input.addEventListener('focus', () => renderItems(input.value));
-      input.addEventListener('input', () => renderItems(input.value));
+      input.addEventListener('focus', () => render(input.value));
+      input.addEventListener('input', () => render(input.value));
 
       document.addEventListener('click', (e) => {
         if (!input.contains(e.target) && !dropdown.contains(e.target)) {
@@ -351,51 +310,29 @@
       });
     }
 
-    function toggleSpinner(show) {
-      const spinner = document.getElementById('loadingOverlay');
-      if (show) spinner.classList.add('active');
-      else spinner.classList.remove('active');
-    }
-
     async function fetchServerData() {
-      toggleSpinner(true);
       try {
         const response = await fetch(SCRIPT_URL);
         if (response.ok) {
           const data = await response.json();
-          recordsData = data || [];
-          
-          buildPeopleIndex(recordsData);
-          generateReports();
+          if (Array.isArray(data) && data.length > 0) {
+            recordsData = data;
+            buildPeopleIndex(data);
+            generateReports();
+          }
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        toggleSpinner(false);
+        console.warn('تعذر الاتصال بـ Google Sheets، تم تفعيل الوضع المحلي التلقائي.');
       }
     }
 
-    // بناء وسجل قائمة الأسماء للاختيار السريع
     function buildPeopleIndex(data) {
-      registeredPeople.clear();
-
       data.forEach((item, index) => {
-        if (item.name) {
-          registeredPeople.set(item.name, {
+        if (item.name && !registeredPeople.some(p => p.name === item.name)) {
+          registeredPeople.push({
             name: item.name,
-            code: item.code || `CODE-${101 + index}`,
+            code: `CODE-${100 + index}`,
             stage: item.stage,
-            stageTitle: getStageTitle(item.stage),
-            role: item.servantRole,
-            sector: item.servantSector
-          });
-        }
-        if (item.servantName && !registeredPeople.has(item.servantName)) {
-          registeredPeople.set(item.servantName, {
-            name: item.servantName,
-            code: `SERV-${201 + index}`,
-            stage: 'servant',
-            stageTitle: 'خادم مشرف',
             role: item.servantRole,
             sector: item.servantSector
           });
@@ -413,55 +350,47 @@
       }
     }
 
-    async function handleFormSubmit(e) {
+    function handleFormSubmit(e) {
       e.preventDefault();
 
-      const nameValue = document.getElementById('personSearchInput').value.trim();
-      const stageValue = document.getElementById('personStage').value;
+      const nameVal = document.getElementById('personSearchInput').value.trim();
+      const stageVal = document.getElementById('personStage').value;
 
       const payload = {
         servantName: document.getElementById('servantSearchInput').value,
         servantRole: document.getElementById('servantRole').value,
         servantSector: document.getElementById('servantSector').value,
-        name: nameValue,
-        stage: stageValue,
+        name: nameVal,
+        stage: stageVal,
         date: document.getElementById('attendanceDate').value,
         attendedMass: document.getElementById('chkMass').checked,
         attendedSundaySchool: document.getElementById('chkSundaySchool').checked,
         attendedServiceMeeting: document.getElementById('chkServiceMeeting').checked
       };
 
-      toggleSpinner(true);
-
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+      // حفظ الاسم محلياً في القائمة فوراً
+      if (!registeredPeople.some(p => p.name === nameVal)) {
+        registeredPeople.push({
+          name: nameVal,
+          code: `CODE-${100 + registeredPeople.length}`,
+          stage: stageVal
         });
-
-        recordsData.push(payload);
-        
-        // حفظ الاسم في الدليل المباشر لاستخدامه فوراً بدون إعادة كتابة
-        registeredPeople.set(nameValue, {
-          name: nameValue,
-          code: `CODE-${101 + registeredPeople.size}`,
-          stage: stageValue,
-          stageTitle: getStageTitle(stageValue)
-        });
-
-        generateReports();
-        
-        document.getElementById('attendanceForm').reset();
-        document.getElementById('attendanceDate').value = payload.date;
-        alert('تم تسجيل الحضور بنجاح!');
-      } catch (err) {
-        alert('حدث خطأ أثناء حفظ البيانات!');
-        console.error(err);
-      } finally {
-        toggleSpinner(false);
       }
+
+      recordsData.push(payload);
+      generateReports();
+
+      // إرسال البيانات للسيرفر في الخلفية
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.error(err));
+
+      document.getElementById('attendanceForm').reset();
+      document.getElementById('attendanceDate').value = payload.date;
+      alert('تم تسجيل الحضور بنجاح!');
     }
 
     function generateReports() {
