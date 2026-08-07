@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>متابعة الخدام</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 12px; background-color: #f8f9fa; color: #333; }
-    h3 { text-align: center; color: #2c3e50; margin-bottom: 8px; }
-    .web-link { text-align: center; margin-bottom: 15px; }
-    .web-link a { font-size: 11px; color: #007bff; text-decoration: none; word-break: break-all; }
+    h3 { text-align: center; color: #2c3e50; margin-bottom: 15px; }
     .tab { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 2px solid #ccc; }
     .tab button { background: none; border: none; padding: 8px 12px; cursor: pointer; font-weight: bold; color: #666; }
     .tab button.active { color: #007bff; border-bottom: 3px solid #007bff; }
@@ -31,9 +31,6 @@
 <body>
 
   <h3>متابعة الخدام</h3>
-  <div class="web-link">
-    <a href="https://script.google.com/macros/s/AKfycbwaELU9FefidyIwVBY38VplEok2lhT8UoO4TYZ7d7EN4aGnpmjaghSVbro-fbiwhi0W3A/exec" target="_blank">🔗 فتح النموذج في صفحة مستقلة</a>
-  </div>
 
   <div class="tab">
     <button class="active" onclick="openTab('add')">تسجيل جديد</button>
@@ -110,21 +107,29 @@
   </div>
 
   <script>
-    document.getElementById('entryDate').valueAsDate = new Date();
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaELU9FefidyIwVBY38VplEok2lhT8UoO4TYZ7d7EN4aGnpmjaghSVbro-fbiwhi0W3A/exec";
 
-    function checkGoogleScript() {
-      if (typeof google === 'undefined' || typeof google.script === 'undefined') {
-        alert("تنبيه: يجب فتح هذه الصفحة من داخل Google Sheets أو عبر بيئة Google Apps Script الصحيحة ليتمكن الكود من الاتصال بالشيت.");
-        return false;
-      }
-      return true;
-    }
+    document.getElementById('entryDate').valueAsDate = new Date();
 
     function openTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab button').forEach(el => el.classList.remove('active'));
       document.getElementById(tabName).classList.add('active');
       event.currentTarget.classList.add('active');
+    }
+
+    // دالة مساعدة لإتمام طلبات JSONP وتفادي CORS
+    function fetchJSONP(url, callbackName) {
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        window[callbackName] = function(data) {
+          resolve(data);
+          document.body.removeChild(script);
+          delete window[callbackName];
+        };
+        script.src = `${url}&callback=${callbackName}`;
+        document.body.appendChild(script);
+      });
     }
 
     function onSearchInput(val) {
@@ -134,9 +139,8 @@
         return;
       }
 
-      if (!checkGoogleScript()) return;
-
-      google.script.run.withSuccessHandler(function(list) {
+      var url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(val)}`;
+      fetchJSONP(url, 'handleServantsList').then(list => {
         if (!list || list.length === 0) {
           box.style.display = 'none';
           return;
@@ -149,7 +153,7 @@
         });
         box.innerHTML = html;
         box.style.display = 'block';
-      }).searchServants(val);
+      });
     }
 
     function selectServant(code, name) {
@@ -166,9 +170,8 @@
         return;
       }
 
-      if (!checkGoogleScript()) return;
-
-      google.script.run.withSuccessHandler(function(list) {
+      var url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(val)}`;
+      fetchJSONP(url, 'handleRecordServants').then(list => {
         if (!list || list.length === 0) {
           box.style.display = 'none';
           return;
@@ -181,7 +184,7 @@
         });
         box.innerHTML = html;
         box.style.display = 'block';
-      }).searchServants(val);
+      });
     }
 
     function selectRecordServant(code, name) {
@@ -198,26 +201,22 @@
         return;
       }
 
-      if (!checkGoogleScript()) return;
-
-      var formData = {
-        code: code,
-        name: name,
-        date: document.getElementById('entryDate').value,
-        qaddas: document.getElementById('qaddas').value,
-        sundaySchool: document.getElementById('sundaySchool').value,
-        meeting: document.getElementById('meeting').value,
-        preparation: document.getElementById('preparation').value,
-        bible: document.getElementById('bible').value
-      };
-
       document.getElementById('status').innerText = "جاري الحفظ...";
-      google.script.run.withSuccessHandler(function(res) {
-        document.getElementById('status').innerText = res;
+
+      var params = `action=saveData&code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}` +
+                   `&date=${encodeURIComponent(document.getElementById('entryDate').value)}` +
+                   `&qaddas=${encodeURIComponent(document.getElementById('qaddas').value)}` +
+                   `&sundaySchool=${encodeURIComponent(document.getElementById('sundaySchool').value)}` +
+                   `&meeting=${encodeURIComponent(document.getElementById('meeting').value)}` +
+                   `&preparation=${encodeURIComponent(document.getElementById('preparation').value)}` +
+                   `&bible=${encodeURIComponent(document.getElementById('bible').value)}`;
+
+      fetchJSONP(`${SCRIPT_URL}?${params}`, 'handleSaveResponse').then(res => {
+        document.getElementById('status').innerText = "تم حفظ البيانات بنجاح!";
         document.getElementById('servantCode').value = '';
         document.getElementById('servantName').value = '';
         document.getElementById('searchInput').value = '';
-      }).saveData(formData);
+      });
     }
 
     function searchRecords() {
@@ -227,13 +226,12 @@
         return;
       }
 
-      if (!checkGoogleScript()) return;
-
       var resultsDiv = document.getElementById('searchResults');
       resultsDiv.innerHTML = "جاري البحث...";
 
-      google.script.run.withSuccessHandler(function(records) {
-        if(records.length === 0) {
+      var url = `${SCRIPT_URL}?action=searchServantData&code=${encodeURIComponent(code)}`;
+      fetchJSONP(url, 'handleRecordsData').then(records => {
+        if(!records || records.length === 0) {
           resultsDiv.innerHTML = "<p style='text-align:center;'>لا توجد سجلات لهذا الخادم.</p>";
           return;
         }
@@ -247,7 +245,7 @@
           </div>`;
         });
         resultsDiv.innerHTML = html;
-      }).searchServantData(code);
+      });
     }
   </script>
 </body>
