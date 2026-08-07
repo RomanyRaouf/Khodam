@@ -1,326 +1,794 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الخدمة والخدام</title>
-    <style>
-        :root {
-            --primary-color: #1b365d;
-            --secondary-color: #4a90e2;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-            --success-color: #2e7d32;
-            --danger-color: #c62828;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام متابعة وافتقاد الخدام</title>
+  <style>
+    :root {
+      --primary-color: #5c1d24;
+      --secondary-color: #8b263e;
+      --gold-color: #d4af37;
+      --bg-color: #fdfaf7;
+      --card-bg: #ffffff;
+      --text-color: #2c1810;
+      --border-color: #e2d2c3;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 15px;
+      direction: rtl;
+      background-image: radial-gradient(#8b263e10 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
-            direction: rtl;
-        }
+    .container {
+      max-width: 950px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(92, 29, 36, 0.12);
+      border: 1px solid var(--border-color);
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--gold-color);
+      padding-bottom: 12px;
+      margin-bottom: 25px;
+    }
 
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+    h2 {
+      color: var(--primary-color);
+      margin: 0;
+      font-size: 22px;
+    }
 
-        header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
+    .status-badge {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      display: inline-block;
+      font-weight: bold;
+    }
 
-        .status-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            background-color: #fff;
-            color: var(--primary-color);
-        }
+    .status-loading {
+      background-color: #fff3cd;
+      color: #856404;
+    }
 
-        .status-loading { background-color: #fff3cd; color: #856404; }
-        .status-ready { background-color: #d4edda; color: #155724; }
+    .status-ready {
+      background-color: #d4edda;
+      color: #155724;
+    }
 
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 25px;
+      gap: 5px;
+    }
 
-        .card h2 {
-            font-size: 18px;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            border-bottom: 2px solid var(--bg-color);
-            padding-bottom: 8px;
-        }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: #f8f4f0;
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--primary-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+    .tab-btn:hover {
+      background: #f0e6dd;
+    }
 
-        input[type="text"], input[type="date"], select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 15px;
-            outline: none;
-            transition: border 0.2s;
-        }
+    .tab-btn.active {
+      background: var(--primary-color);
+      color: #ffffff;
+      border-color: var(--primary-color);
+    }
 
-        input:focus, select:focus {
-            border-color: var(--secondary-color);
-        }
+    .tab-content {
+      display: none;
+    }
 
-        .btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
+    .tab-content.active {
+      display: block;
+    }
 
-        .btn:hover {
-            background-color: #357abd;
-        }
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
 
-        .btn-success { background-color: var(--success-color); }
-        .btn-success:hover { background-color: #1e5622; }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: var(--primary-color);
+      font-size: 14px;
+    }
 
-        .table-responsive {
-            overflow-x: auto;
-        }
+    input[type="text"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+      background-color: #faf8f5;
+      color: var(--text-color);
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--gold-color);
+      background-color: #fff;
+    }
 
-        th, td {
-            padding: 12px;
-            text-align: right;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-        }
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
 
-        th {
-            background-color: #f8f9fa;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
+    .suggestion-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f4efe9;
+      color: var(--text-color);
+    }
 
-        tr:hover {
-            background-color: #f1f5f9;
-        }
+    .suggestion-item:hover {
+      background-color: #f8f1ea;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
 
-        .refresh-btn {
-            background: transparent;
-            border: 1px solid white;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-right: 10px;
-        }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
 
-        .refresh-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-    </style>
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background-color: var(--primary-color);
+      color: white;
+      border: 1px solid var(--gold-color);
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .btn-finish {
+      background-color: #c0392b;
+      border-color: #a93226;
+    }
+
+    .btn-finish:hover {
+      background-color: #922b21;
+    }
+
+    .btn-reload {
+      background-color: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn-reload:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .report-table th, .report-table td {
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .report-table th {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .report-table tr:nth-child(even) {
+      background-color: #faf6f0;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .clickable-row:hover {
+      background-color: #f0e2d3 !important;
+    }
+
+    .servants-list-container {
+      margin-top: 25px;
+      background: #fdfaf7;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 15px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>نظام متابعة الخدمة والخدام</h1>
-        <div>
-            <span id="loadStatus" class="status-badge status-loading">⏳ جاري تحميل القائمة...</span>
-            <button class="refresh-btn" onclick="forceReloadServants()">🔄 تحديث القائمة</button>
-        </div>
-    </header>
-
-    <!-- بطاقة البحث السريع وتصفية الخدام -->
-    <div class="card">
-        <h2>قائمة الخدام (<span id="servantsCount">0</span>)</h2>
-        <div class="search-box">
-            <input type="text" id="searchInput" oninput="filterServants()" placeholder="ابحث بالاسم أو الكود...">
-        </div>
-        
-        <div class="table-responsive">
-            <div id="allServantsTableArea">
-                <p style="text-align: center; color: #777;">جاري تحضير البيانات...</p>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header-bar">
+      <h2>⛪ نظام متابعة وافتقاد الخدام</h2>
+      <div>
+        <span id="loadStatus" class="status-badge status-loading">⏳ جاري التحميل...</span>
+        <button class="btn-reload" onclick="loadAllServantsOnStart(true)">🔄 تحديث</button>
+      </div>
     </div>
-</div>
 
-<script>
-    // رابط جوجل سكريبت الخادمي الخص بك
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('entryTab', this)">📝 تسجيل الحضور</button>
+      <button class="tab-btn" onclick="switchTab('servantReportTab', this)">👤 سجل خادم</button>
+      <button class="tab-btn" onclick="switchTab('dailyReportTab', this)">📊 التقارير اليومية</button>
+    </div>
+
+    <!-- 1. تسجيل الحضور -->
+    <div id="entryTab" class="tab-content active">
+      <form id="attendanceForm" onsubmit="handleSaveData(event)">
+        <div class="grid-2">
+          <div class="form-group">
+            <label>البحث السريع عن الخادم:</label>
+            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو الكود..." oninput="filterServants(this.value)" autocomplete="off">
+            <div id="suggestions" class="suggestions" style="display: none;"></div>
+          </div>
+
+          <div class="form-group">
+            <label>التاريخ:</label>
+            <input type="date" id="entryDate" required>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label>كود الخادم:</label>
+            <input type="text" id="servantCode" required readonly style="background: #eee5dc;">
+          </div>
+
+          <div class="form-group">
+            <label>اسم الخادم:</label>
+            <input type="text" id="servantName" required readonly style="background: #eee5dc;">
+          </div>
+
+          <div class="form-group">
+            <label>الخدمة / الفصل:</label>
+            <input type="text" id="servantService" readonly style="background: #eee5dc;" placeholder="-">
+          </div>
+        </div>
+
+        <hr style="margin: 18px 0; border: 0; border-top: 1px dashed var(--border-color);">
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>القداس:</label>
+            <select id="qaddas">
+              <option value="حضر">حضر</option>
+              <option value="لم يحضر">لم يحضر</option>
+              <option value="يعتذر">يعتذر</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>مدارس الأحد:</label>
+            <select id="sundaySchool">
+              <option value="حضر">حضر</option>
+              <option value="لم يحضر">لم يحضر</option>
+              <option value="يعتذر">يعتذر</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>اجتماع الخدمة:</label>
+            <select id="meeting">
+              <option value="حضر">حضر</option>
+              <option value="لم يحضر">لم يحضر</option>
+              <option value="يعتذر">يعتذر</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>تحضير الدرس:</label>
+            <select id="preparation">
+              <option value="تم">تم</option>
+              <option value="لم يتم">لم يتم</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>قراءة العهد القديم:</label>
+            <select id="oldTestament">
+              <option value="تمت القراءة">تمت القراءة</option>
+              <option value="لم تتم القراءة">لم تتم القراءة</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>قراءة العهد الجديد:</label>
+            <select id="newTestament">
+              <option value="تمت القراءة">تمت القراءة</option>
+              <option value="لم تتم القراءة">لم تتم القراءة</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSave" class="btn">💾 حفظ حضور الخادم</button>
+      </form>
+
+      <hr style="margin: 25px 0; border: 0; border-top: 2px solid var(--border-color);">
+
+      <button type="button" id="btnFinish" onclick="handleFinishRegistration()" class="btn btn-finish">
+        🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)
+      </button>
+
+      <!-- دليل الخدام بالنقر المباشر -->
+      <div class="servants-list-container">
+        <h4 style="margin: 0 0 10px 0; color: var(--primary-color);">📋 دليل الخدام المتاحين (اضغط على الاسم لاختياره مباشرة):</h4>
+        <div id="allServantsTableArea">⏳ جاري التحميل...</div>
+      </div>
+    </div>
+
+    <!-- 2. سجل خادم معين -->
+    <div id="servantReportTab" class="tab-content">
+      <div class="form-group">
+        <label>ادخل كود الخادم لعرض السجل:</label>
+        <input type="text" id="searchServantCodeInput" placeholder="مثال: 101">
+      </div>
+      <button onclick="getServantHistory()" class="btn">🔍 عرض سجل الخادم</button>
+      
+      <div id="servantHistoryResults" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- 3. التقارير اليومية -->
+    <div id="dailyReportTab" class="tab-content">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>اختر التاريخ:</label>
+          <input type="date" id="reportDate">
+        </div>
+        <div class="form-group">
+          <label>نوع التقرير:</label>
+          <select id="reportFilter">
+            <option value="all">عرض الكل (حضور وغياب)</option>
+            <option value="absent">عرض الغائبين فقط ❌</option>
+            <option value="present">عرض الحاضرين فقط ✅</option>
+          </select>
+        </div>
+      </div>
+      
+      <button onclick="getDailyReport()" class="btn">📊 عرض التقرير</button>
+
+      <div id="printArea">
+        <button id="btnReportPrint" onclick="window.print()" class="btn" style="display: none; background-color: #27ae60; border-color: #219150; margin-top: 15px;">🖨️ طباعة التقرير</button>
+        <div id="reportResults" style="margin-top: 15px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-pO3u_84xW_bXaeYQMh7CroDdXkZJTzbTf-GGm-fSnsgZx9d73HoCjI4GBqWsmdWnyA/exec";
-    
     let allServantsList = [];
 
-    // إضافة سكريبت JSONP ديناميكياً لتفادي مشاكل CORS
-    function addScriptTag(url, callbackName) {
-        const oldScript = document.getElementById(callbackName);
-        if (oldScript) oldScript.remove();
+    document.addEventListener("DOMContentLoaded", function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('entryDate').value = today;
+      document.getElementById('reportDate').value = today;
 
-        const script = document.createElement('script');
-        script.id = callbackName;
-        script.src = url;
-        script.onerror = function() {
-            const statusBadge = document.getElementById('loadStatus');
-            statusBadge.innerText = "❌ خطأ في الاتصال";
-            statusBadge.className = "status-badge";
-            statusBadge.style.backgroundColor = "#f8d7da";
-            statusBadge.style.color = "#721c24";
-        };
-        document.body.appendChild(script);
+      loadAllServantsOnStart();
+    });
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
     }
 
-    function cleanupScript(callbackName) {
-        const script = document.getElementById(callbackName);
-        if (script) script.remove();
-        delete window[callbackName];
-    }
-
-    // تحميل قائمة الخدام عند فتح الصفحة بشكل فوري وعالي السرعة
+    // التحميل الفوري من ذاكرة المتصفح أولاً ثم التحديث من السيرفر
     function loadAllServantsOnStart(forceRefresh = false) {
-        const statusBadge = document.getElementById('loadStatus');
+      const statusBadge = document.getElementById('loadStatus');
 
-        // 1. القراءة الفورية من ذاكرة المتصفح المحلية إن وجدت
-        const cachedData = localStorage.getItem('cached_servants_list');
-        if (cachedData && !forceRefresh) {
-            try {
-                allServantsList = JSON.parse(cachedData);
-                document.getElementById('servantsCount').innerText = allServantsList.length;
-                statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم) [مخزن]`;
-                statusBadge.className = "status-badge status-ready";
-                renderAllServantsTable(allServantsList);
-            } catch(e) {
-                console.error("خطأ في التخزين المحلي", e);
-            }
+      // 1. القراءة الفورية من Cache
+      const cachedData = localStorage.getItem('cached_servants_list');
+      if (cachedData && !forceRefresh) {
+        try {
+          allServantsList = JSON.parse(cachedData);
+          statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
+          statusBadge.className = "status-badge status-ready";
+          renderAllServantsTable(allServantsList);
+        } catch(e) {
+          console.error("خطأ التخزين المحلي", e);
         }
+      }
 
-        // 2. الطلب من السيرفر للتحديث في الخلفية
-        const cbName = 'cb_load_servants_' + Date.now();
-        window[cbName] = function(data) {
-            if (data && Array.isArray(data) && data.length > 0) {
-                allServantsList = data;
-                // تحديث الذاكرة المحلية
-                localStorage.setItem('cached_servants_list', JSON.stringify(data));
-                
-                document.getElementById('servantsCount').innerText = allServantsList.length;
-                statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
-                statusBadge.className = "status-badge status-ready";
-                renderAllServantsTable(allServantsList);
-            } else if (!cachedData) {
-                statusBadge.innerText = "❌ تعذر التحميل";
-                document.getElementById('allServantsTableArea').innerHTML = "<p style='color:red; text-align:center;'>فشل جلب قائمة الخدام من الشيت.</p>";
-            }
-            cleanupScript(cbName);
-        };
+      // 2. تحديث صامت في الخلفية من السيرفر
+      const cbName = 'cb_load_servants_' + Date.now();
+      window[cbName] = function(data) {
+        if (data && Array.isArray(data) && data.length > 0) {
+          allServantsList = data;
+          localStorage.setItem('cached_servants_list', JSON.stringify(data));
+          statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
+          statusBadge.className = "status-badge status-ready";
+          renderAllServantsTable(allServantsList);
+        } else if (!cachedData) {
+          statusBadge.innerText = "❌ تعذر التحميل";
+          document.getElementById('allServantsTableArea').innerHTML = "<p style='color:red;'>فشل تحميل قائمة الخدام.</p>";
+        }
+        cleanupScript(cbName);
+      };
 
-        const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}`;
-        addScriptTag(url, cbName);
+      const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}`;
+      addScriptTag(url, cbName);
     }
 
-    // إجبار إعادة تحديث القائمة من السيرفر
-    function forceReloadServants() {
-        const statusBadge = document.getElementById('loadStatus');
-        statusBadge.innerText = "⏳ جاري التحديث...";
-        statusBadge.className = "status-badge status-loading";
-        loadAllServantsOnStart(true);
-    }
-
-    // عرض القائمة في الجدول
     function renderAllServantsTable(list) {
-        if (!list || list.length === 0) {
-            document.getElementById('allServantsTableArea').innerHTML = "<p style='text-align:center;'>لا توجد بيانات للعرض.</p>";
-            return;
-        }
+      const area = document.getElementById('allServantsTableArea');
+      if (!list || list.length === 0) {
+        area.innerHTML = "<p>لا يوجد خدام مسجلين.</p>";
+        return;
+      }
 
-        let html = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>الكود</th>
-                        <th>الاسم</th>
-                        <th>الخدمة</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
+      let html = `<table class="report-table">
+        <thead>
+          <tr>
+            <th>الكود</th>
+            <th>اسم الخادم</th>
+            <th>الخدمة / الفصل</th>
+          </tr>
+        </thead>
+        <tbody>`;
 
+      list.forEach(item => {
+        html += `<tr class="clickable-row" onclick="selectServant('${item.code}', '${escapeHtml(item.name)}', '${escapeHtml(item.service || '')}')">
+          <td><b>${item.code}</b></td>
+          <td>${item.name}</td>
+          <td>${item.service || '-'}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      area.innerHTML = html;
+    }
+
+    function selectServant(code, name, service) {
+      document.getElementById('servantCode').value = code;
+      document.getElementById('servantName').value = name;
+      document.getElementById('servantService').value = service;
+      document.getElementById('searchInput').value = name;
+      document.getElementById('suggestions').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function escapeHtml(text) {
+      return text ? text.replace(/'/g, "\\'") : '';
+    }
+
+    function cleanText(str) {
+      if (!str) return '';
+      return str.toString().toLowerCase().trim()
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u0652]/g, '')
+        .replace(/\s+/g, ' ');
+    }
+
+    function filterServants(query) {
+      const suggBox = document.getElementById('suggestions');
+      const cleanQ = cleanText(query);
+
+      if (!cleanQ) {
+        suggBox.style.display = 'none';
+        renderAllServantsTable(allServantsList);
+        return;
+      }
+
+      const filtered = allServantsList.filter(item => {
+        const cName = cleanText(item.name);
+        const cCode = cleanText(item.code);
+        const cService = cleanText(item.service);
+        return cName.includes(cleanQ) || cCode.includes(cleanQ) || cService.includes(cleanQ);
+      });
+
+      renderSuggestions(filtered);
+      renderAllServantsTable(filtered);
+    }
+
+    function renderSuggestions(list) {
+      const suggBox = document.getElementById('suggestions');
+      suggBox.innerHTML = '';
+
+      if (list && list.length > 0) {
         list.forEach(item => {
-            html += `
-                <tr>
-                    <td><strong>${item.code || '-'}</strong></td>
-                    <td>${item.name || '-'}</td>
-                    <td>${item.service || '-'}</td>
-                </tr>
-            `;
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.innerText = `${item.name} (${item.code}) - ${item.service || ''}`;
+          div.onclick = function() {
+            selectServant(item.code, item.name, item.service || '');
+          };
+          suggBox.appendChild(div);
         });
-
-        html += `</tbody></table>`;
-        document.getElementById('allServantsTableArea').innerHTML = html;
+        suggBox.style.display = 'block';
+      } else {
+        suggBox.style.display = 'none';
+      }
     }
 
-    // البحث والتصفية أثناء الكتابة
-    function filterServants() {
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-        if (!query) {
-            renderAllServantsTable(allServantsList);
-            return;
+    function handleSaveData(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSave');
+      btn.disabled = true;
+      btn.innerText = "⏳ جاري الحفظ...";
+
+      const oldTest = document.getElementById('oldTestament').value;
+      const newTest = document.getElementById('newTestament').value;
+      const bibleCombined = `ع.ق: ${oldTest} | ع.ج: ${newTest}`;
+
+      const params = new URLSearchParams({
+        action: 'saveData',
+        code: document.getElementById('servantCode').value,
+        name: document.getElementById('servantName').value,
+        service: document.getElementById('servantService').value,
+        date: document.getElementById('entryDate').value,
+        qaddas: document.getElementById('qaddas').value,
+        sundaySchool: document.getElementById('sundaySchool').value,
+        meeting: document.getElementById('meeting').value,
+        preparation: document.getElementById('preparation').value,
+        bible: bibleCombined
+      });
+
+      const cbName = 'cb_save_' + Date.now();
+      window[cbName] = function(res) {
+        if (res && res.status === "success") {
+          alert("✅ تم حفظ حضور الخادم بنجاح!");
+          document.getElementById('attendanceForm').reset();
+          document.getElementById('servantService').value = '';
+          const today = new Date().toISOString().split('T')[0];
+          document.getElementById('entryDate').value = today;
+        } else {
+          alert("❌ حدث خطأ أثناء الحفظ.");
+        }
+        btn.disabled = false;
+        btn.innerText = "💾 حفظ حضور الخادم";
+        cleanupScript(cbName);
+      };
+
+      const url = `${SCRIPT_URL}?${params.toString()}&callback=${cbName}`;
+      addScriptTag(url, cbName);
+    }
+
+    function handleFinishRegistration() {
+      const selectedDate = document.getElementById('entryDate').value;
+      if (!selectedDate) {
+        alert("يرجى تحديد التاريخ أولاً!");
+        return;
+      }
+
+      if (!confirm(`هل أنت تأكد من إنهاء التسجيل لتاريخ ${selectedDate}؟\nسيتم تسجيل جميع الخدام الذين لم يسجلوا حضورهم كـ (غياب) تلقائياً.`)) {
+        return;
+      }
+
+      const btn = document.getElementById('btnFinish');
+      btn.disabled = true;
+      btn.innerText = "⏳ جاري تسجيل باقي الخدام غياب...";
+
+      const cbName = 'cb_finish_' + Date.now();
+      window[cbName] = function(res) {
+        if (res && res.status === "success") {
+          alert(`✅ تم إنهاء التسجيل بنجاح!\nتم إدراج ${res.count} خادم كـ "غياب".`);
+        } else {
+          alert("❌ حدث خطأ أثناء إنهاء التسجيل.");
+        }
+        btn.disabled = false;
+        btn.innerText = "🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)";
+        cleanupScript(cbName);
+      };
+
+      const url = `${SCRIPT_URL}?action=finishRegistration&date=${encodeURIComponent(selectedDate)}&callback=${cbName}`;
+      addScriptTag(url, cbName);
+    }
+
+    function getServantHistory() {
+      const code = document.getElementById('searchServantCodeInput').value.trim();
+      const resultsDiv = document.getElementById('servantHistoryResults');
+
+      if (!code) {
+        alert("يرجى أدخال كود الخادم");
+        return;
+      }
+
+      resultsDiv.innerHTML = "⏳ جاري تحميل السجل...";
+
+      const cbName = 'cb_servant_hist_' + Date.now();
+      window[cbName] = function(records) {
+        if (!records || records.length === 0) {
+          resultsDiv.innerHTML = "<p style='text-align:center;'>لا توجد سجلات لهذا الخادم.</p>";
+        } else {
+          let html = `<table class="report-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>الخدمة</th>
+                <th>قداس</th>
+                <th>مدارس أحد</th>
+                <th>اجتماع</th>
+                <th>تحضير</th>
+                <th>الكتاب المقدس</th>
+              </tr>
+            </thead>
+            <tbody>`;
+          records.forEach(r => {
+            html += `<tr>
+              <td>${r.date}</td>
+              <td>${r.service || '-'}</td>
+              <td>${r.qaddas}</td>
+              <td>${r.sundaySchool}</td>
+              <td>${r.meeting}</td>
+              <td>${r.preparation}</td>
+              <td>${r.bible}</td>
+            </tr>`;
+          });
+          html += `</tbody></table>`;
+          resultsDiv.innerHTML = html;
+        }
+        cleanupScript(cbName);
+      };
+
+      const url = `${SCRIPT_URL}?action=searchServantData&code=${encodeURIComponent(code)}&callback=${cbName}`;
+      addScriptTag(url, cbName);
+    }
+
+    function getDailyReport() {
+      const dateVal = document.getElementById('reportDate').value;
+      const filterVal = document.getElementById('reportFilter').value;
+      const resultsDiv = document.getElementById('reportResults');
+      const printBtn = document.getElementById('btnReportPrint');
+
+      if (!dateVal) {
+        alert("يرجى اختيار التاريخ أولاً");
+        return;
+      }
+
+      resultsDiv.innerHTML = "⏳ جاري تحميل التقرير...";
+      printBtn.style.display = 'none';
+
+      const cbName = 'cb_daily_' + Date.now();
+
+      window[cbName] = function(records) {
+        if (!records || !Array.isArray(records) || records.length === 0) {
+          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
+        } else {
+          let filterTitle = "التقرير الشامل";
+          if (filterVal === "absent") filterTitle = "تقرير الخدام الغائبين ❌";
+          if (filterVal === "present") filterTitle = "تقرير الخدام الحاضرين ✅";
+
+          let html = `<h4 style="margin: 0 0 10px 0; color: var(--primary-color); text-align: center;">📊 ${filterTitle} ليوم: ${dateVal}</h4>`;
+          html += `<table class="report-table">
+            <thead>
+              <tr>
+                <th>الخادم</th>
+                <th>الخدمة / الفصل</th>
+                <th>قداس</th>
+                <th>مدارس أحد</th>
+                <th>اجتماع</th>
+                <th>تحضير</th>
+                <th>الكتاب المقدس</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+          records.forEach(function(rec) {
+            html += `<tr>
+              <td><b>${rec.name || ''}</b><br><small>(${rec.code || ''})</small></td>
+              <td>${rec.service || '-'}</td>
+              <td>${rec.qaddas || '-'}</td>
+              <td>${rec.sundaySchool || '-'}</td>
+              <td>${rec.meeting || '-'}</td>
+              <td>${rec.preparation || '-'}</td>
+              <td>${rec.bible || '-'}</td>
+            </tr>`;
+          });
+
+          html += `</tbody></table>`;
+          resultsDiv.innerHTML = html;
+          printBtn.style.display = 'block';
         }
 
-        const filtered = allServantsList.filter(s => 
-            (s.name && s.name.toLowerCase().includes(query)) || 
-            (s.code && s.code.toString().toLowerCase().includes(query)) ||
-            (s.service && s.service.toLowerCase().includes(query))
-        );
+        cleanupScript(cbName);
+      };
 
-        renderAllServantsTable(filtered);
+      const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}&callback=${cbName}`;
+      addScriptTag(url, cbName);
     }
 
-    // بدء التشغيل تلقائياً فور تحميل الصفحة
-    window.onload = function() {
-        loadAllServantsOnStart();
-    };
-</script>
+    function addScriptTag(url, id) {
+      cleanupScript(id);
+      const script = document.createElement('script');
+      script.id = id;
+      script.src = url;
+      script.onerror = function() {
+        console.error("خطأ في الاتصال بالرابط:", url);
+      };
+      document.body.appendChild(script);
+    }
 
+    function cleanupScript(id) {
+      delete window[id];
+      const elem = document.getElementById(id);
+      if (elem) elem.remove();
+    }
+  </script>
 </body>
 </html>
