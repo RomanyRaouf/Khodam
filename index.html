@@ -9,7 +9,7 @@
       --primary-color: #5c1d24; /* لون عنابي كنسي */
       --secondary-color: #8b263e;
       --gold-color: #d4af37; /* لون ذهبي */
-      --bg-color: #fdfaf7; /* خلفية دافئة مريحة للعين */
+      --bg-color: #fdfaf7;
       --card-bg: #ffffff;
       --text-color: #2c1810;
       --border-color: #e2d2c3;
@@ -43,10 +43,6 @@
       font-size: 24px;
       border-bottom: 2px solid var(--gold-color);
       padding-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
     }
 
     /* Tabs Layout */
@@ -115,7 +111,6 @@
       font-size: 15px;
       background-color: #faf8f5;
       color: var(--text-color);
-      transition: border-color 0.3s;
     }
 
     input[type="text"]:focus,
@@ -180,7 +175,6 @@
       cursor: pointer;
       transition: all 0.3s;
       margin-top: 10px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     }
 
     .btn:hover {
@@ -216,7 +210,6 @@
     .report-table th {
       background-color: var(--primary-color);
       color: white;
-      border-color: var(--secondary-color);
     }
 
     .report-table tr:nth-child(even) {
@@ -261,7 +254,7 @@
         <div class="grid-2">
           <div class="form-group">
             <label>البحث / اكتب اسم الخادم أو الكود:</label>
-            <input type="text" id="searchInput" placeholder="ابحث بأي جزء من الاسم أو الكود..." oninput="onSearchServants(this.value)" autocomplete="off">
+            <input type="text" id="searchInput" placeholder="ابحث بأي جزء من الاسم..." oninput="filterServants(this.value)" autocomplete="off">
             <div id="suggestions" class="suggestions" style="display: none;"></div>
           </div>
 
@@ -377,10 +370,15 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
+    let allServantsList = []; // مصفوفة لتخزين قائمة الخدام في المتصفح للبحث السريع
+
     document.addEventListener("DOMContentLoaded", function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('entryDate').value = today;
       document.getElementById('reportDate').value = today;
+
+      // جلب قائمة الخدام فور فتح الصفحة للبحث السريع المحلي
+      loadAllServants();
     });
 
     function switchTab(tabId, btn) {
@@ -390,47 +388,65 @@
       btn.classList.add('active');
     }
 
-    // --- 1. البحث التلقائي عن الخدام ---
-    let searchTimeout = null;
-    function onSearchServants(query) {
-      clearTimeout(searchTimeout);
+    // --- تحميل قائمة الخدام للبحث السريع المحلي ---
+    function loadAllServants() {
+      const cbName = 'cb_load_servants_' + Date.now();
+      window[cbName] = function(data) {
+        if (data && Array.isArray(data)) {
+          allServantsList = data;
+        }
+        cleanupScript(cbName);
+      };
+      const url = `${SCRIPT_URL}?action=searchServants&query=&callback=${cbName}`;
+      addScriptTag(url, cbName);
+    }
+
+    // --- دالة تنظيف النص العربي للبحث السريع بالأجزاء والهمزات ---
+    function cleanText(str) {
+      if (!str) return '';
+      return str.toString().toLowerCase().trim()
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u0652]/g, '');
+    }
+
+    // --- البحث المباشر السريع محلياً ---
+    function filterServants(query) {
       const suggBox = document.getElementById('suggestions');
-      
-      if (!query || !query.trim()) {
+      const cleanQ = cleanText(query);
+
+      if (!cleanQ) {
         suggBox.style.display = 'none';
         return;
       }
 
-      searchTimeout = setTimeout(() => {
-        const cbName = 'cb_search_' + Date.now();
-        window[cbName] = function(data) {
-          suggBox.innerHTML = '';
-          if (data && Array.isArray(data) && data.length > 0) {
-            data.forEach(item => {
-              const div = document.createElement('div');
-              div.className = 'suggestion-item';
-              div.innerText = `${item.name} (${item.code})`;
-              div.onclick = function() {
-                document.getElementById('servantCode').value = item.code;
-                document.getElementById('servantName').value = item.name;
-                document.getElementById('searchInput').value = item.name;
-                suggBox.style.display = 'none';
-              };
-              suggBox.appendChild(div);
-            });
-            suggBox.style.display = 'block';
-          } else {
-            suggBox.style.display = 'none';
-          }
-          cleanupScript(cbName);
-        };
+      // تصفية الأسماء بناءً على احتواء أي جزء من الاسم أو الكود
+      const filtered = allServantsList.filter(item => {
+        return cleanText(item.name).includes(cleanQ) || cleanText(item.code).includes(cleanQ);
+      });
 
-        const url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(query)}&callback=${cbName}`;
-        addScriptTag(url, cbName);
-      }, 200);
+      suggBox.innerHTML = '';
+      if (filtered.length > 0) {
+        filtered.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'suggestion-item';
+          div.innerText = `${item.name} (${item.code})`;
+          div.onclick = function() {
+            document.getElementById('servantCode').value = item.code;
+            document.getElementById('servantName').value = item.name;
+            document.getElementById('searchInput').value = item.name;
+            suggBox.style.display = 'none';
+          };
+          suggBox.appendChild(div);
+        });
+        suggBox.style.display = 'block';
+      } else {
+        suggBox.style.display = 'none';
+      }
     }
 
-    // --- 2. حفظ البيانات ---
+    // --- حفظ البيانات ---
     function handleSaveData(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSave');
@@ -472,7 +488,7 @@
       addScriptTag(url, cbName);
     }
 
-    // --- 3. سجل خادم معين ---
+    // --- سجل خادم معين ---
     function getServantHistory() {
       const code = document.getElementById('searchServantCodeInput').value.trim();
       const resultsDiv = document.getElementById('servantHistoryResults');
@@ -521,7 +537,7 @@
       addScriptTag(url, cbName);
     }
 
-    // --- 4. تقرير كل الخدام بتاريخ معين ---
+    // --- تقرير كل الخدام بتاريخ معين ---
     function getDailyReport() {
       const dateVal = document.getElementById('reportDate').value;
       const resultsDiv = document.getElementById('reportResults');
