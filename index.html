@@ -6,13 +6,14 @@
   <title>نظام متابعة وافتقاد الخدام</title>
   <style>
     :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --bg-color: #f4f7f6;
+      --primary-color: #5c1d24; /* لون عنابي كنسي */
+      --secondary-color: #8b263e;
+      --gold-color: #d4af37; /* لون ذهبي */
+      --gold-hover: #b89628;
+      --bg-color: #fdfaf7; /* خلفية دافئة مريحة للعين */
       --card-bg: #ffffff;
-      --text-color: #333333;
-      --border-color: #dddddd;
+      --text-color: #2c1810;
+      --border-color: #e2d2c3;
     }
 
     body {
@@ -22,46 +23,64 @@
       margin: 0;
       padding: 15px;
       direction: rtl;
+      background-image: radial-gradient(#8b263e10 1px, transparent 1px);
+      background-size: 20px 20px;
     }
 
     .container {
       max-width: 900px;
       margin: 0 auto;
       background: var(--card-bg);
-      padding: 20px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(92, 29, 36, 0.12);
+      border: 1px solid var(--border-color);
     }
 
     h2 {
       text-align: center;
       color: var(--primary-color);
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      font-size: 24px;
+      border-bottom: 2px solid var(--gold-color);
+      padding-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     /* Tabs Layout */
     .tabs {
       display: flex;
       border-bottom: 2px solid var(--border-color);
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      gap: 5px;
     }
 
     .tab-btn {
       flex: 1;
       padding: 12px;
       text-align: center;
-      background: none;
-      border: none;
-      font-size: 16px;
+      background: #f8f4f0;
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      font-size: 15px;
       font-weight: bold;
-      color: #777;
+      color: var(--primary-color);
       cursor: pointer;
-      transition: 0.3s;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn:hover {
+      background: #f0e6dd;
     }
 
     .tab-btn.active {
-      color: var(--secondary-color);
-      border-bottom: 3px solid var(--secondary-color);
+      background: var(--primary-color);
+      color: #ffffff;
+      border-color: var(--primary-color);
     }
 
     .tab-content {
@@ -74,26 +93,38 @@
 
     /* Form Inputs */
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 18px;
       position: relative;
     }
 
     label {
       display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
+      margin-bottom: 8px;
+      font-weight: bold;
       color: var(--primary-color);
+      font-size: 14px;
     }
 
     input[type="text"],
     input[type="date"],
     select {
       width: 100%;
-      padding: 10px;
+      padding: 11px;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: 8px;
       box-sizing: border-box;
       font-size: 15px;
+      background-color: #faf8f5;
+      color: var(--text-color);
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--gold-color);
+      background-color: #fff;
     }
 
     /* Autocomplete Suggestions */
@@ -104,27 +135,31 @@
       right: 0;
       background: #fff;
       border: 1px solid var(--border-color);
-      border-radius: 0 0 6px 6px;
-      max-height: 150px;
+      border-radius: 0 0 8px 8px;
+      max-height: 180px;
       overflow-y: auto;
       z-index: 100;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
 
     .suggestion-item {
-      padding: 8px 12px;
+      padding: 10px 15px;
       cursor: pointer;
+      border-bottom: 1px solid #f4efe9;
+      color: var(--text-color);
     }
 
     .suggestion-item:hover {
-      background-color: #f0f0f0;
+      background-color: #f8f1ea;
+      color: var(--primary-color);
+      font-weight: bold;
     }
 
     /* Form Grid */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 15px;
+      gap: 18px;
     }
 
     @media (max-width: 600px) {
@@ -136,24 +171,26 @@
     /* Buttons */
     .btn {
       width: 100%;
-      padding: 12px;
-      background-color: var(--secondary-color);
+      padding: 13px;
+      background-color: var(--primary-color);
       color: white;
-      border: none;
-      border-radius: 6px;
+      border: 1px solid var(--gold-color);
+      border-radius: 8px;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s;
       margin-top: 10px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     }
 
     .btn:hover {
-      background-color: #2980b9;
+      background-color: var(--secondary-color);
     }
 
     .btn-print {
       background-color: #27ae60;
+      border-color: #219150;
       margin-bottom: 15px;
     }
 
@@ -166,11 +203,13 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .report-table th, .report-table td {
       border: 1px solid var(--border-color);
-      padding: 10px;
+      padding: 12px 10px;
       text-align: center;
       font-size: 14px;
     }
@@ -178,10 +217,11 @@
     .report-table th {
       background-color: var(--primary-color);
       color: white;
+      border-color: var(--secondary-color);
     }
 
     .report-table tr:nth-child(even) {
-      background-color: #f9f9f9;
+      background-color: #faf6f0;
     }
 
     /* Print Styles */
@@ -221,21 +261,21 @@
       <form id="attendanceForm" onsubmit="handleSaveData(event)">
         <div class="grid-2">
           <div class="form-group">
-            <label>البحث / الاسم أو الكود:</label>
-            <input type="text" id="searchInput" placeholder="اكتب اسم الخادم أو الكود..." oninput="onSearchServants(this.value)" autocomplete="off">
+            <label>البحث / اكتب اسم الخادم أو الكود:</label>
+            <input type="text" id="searchInput" placeholder="ابحث باسم الخادم..." oninput="onSearchServants(this.value)" autocomplete="off">
             <div id="suggestions" class="suggestions" style="display: none;"></div>
           </div>
 
           <div class="form-group">
             <label>كود الخادم:</label>
-            <input type="text" id="servantCode" required readonly style="background: #e9ecef;">
+            <input type="text" id="servantCode" required readonly style="background: #eee5dc;">
           </div>
         </div>
 
         <div class="grid-2">
           <div class="form-group">
             <label>اسم الخادم:</label>
-            <input type="text" id="servantName" required readonly style="background: #e9ecef;">
+            <input type="text" id="servantName" required readonly style="background: #eee5dc;">
           </div>
 
           <div class="form-group">
@@ -244,7 +284,7 @@
           </div>
         </div>
 
-        <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border-color);">
+        <hr style="margin: 18px 0; border: 0; border-top: 1px dashed var(--border-color);">
 
         <div class="grid-2">
           <div class="form-group">
@@ -285,7 +325,7 @@
           </div>
         </div>
 
-        <!-- الجزء المعدل لتحديد العهد القديم والعهد الجديد -->
+        <!-- تقسيم العهد القديم والعهد الجديد -->
         <div class="grid-2">
           <div class="form-group">
             <label>قراءة العهد القديم:</label>
@@ -336,16 +376,14 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3deaptuJm0qFv-s0RBZYpBlMik8wLC4ND33L1oKSevy7kGbtZh__nvJVNFsKub09vPQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
-    // ضبط تاريخ اليوم تلقائياً
     document.addEventListener("DOMContentLoaded", function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('entryDate').value = today;
       document.getElementById('reportDate').value = today;
     });
 
-    // التنقل بين التبويبات
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -359,7 +397,7 @@
       clearTimeout(searchTimeout);
       const suggBox = document.getElementById('suggestions');
       
-      if (!query.trim()) {
+      if (!query || !query.trim()) {
         suggBox.style.display = 'none';
         return;
       }
@@ -368,7 +406,7 @@
         const cbName = 'cb_search_' + Date.now();
         window[cbName] = function(data) {
           suggBox.innerHTML = '';
-          if (data && data.length > 0) {
+          if (data && Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
               const div = document.createElement('div');
               div.className = 'suggestion-item';
@@ -385,13 +423,12 @@
           } else {
             suggBox.style.display = 'none';
           }
-          delete window[cbName];
-          document.getElementById(cbName)?.remove();
+          cleanupScript(cbName);
         };
 
         const url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(query)}&callback=${cbName}`;
         addScriptTag(url, cbName);
-      }, 300);
+      }, 250);
     }
 
     // --- 2. حفظ البيانات ---
@@ -401,7 +438,6 @@
       btn.disabled = true;
       btn.innerText = "⏳ جاري الحفظ...";
 
-      // نرسل العهد القديم والجديد منفصلين أو مجتمعين بحسب ترتيب شيت جوجل
       const oldTest = document.getElementById('oldTestament').value;
       const newTest = document.getElementById('newTestament').value;
       const bibleCombined = `ع.ق: ${oldTest} | ع.ج: ${newTest}`;
@@ -430,8 +466,7 @@
         }
         btn.disabled = false;
         btn.innerText = "💾 حفظ البيانات";
-        delete window[cbName];
-        document.getElementById(cbName)?.remove();
+        cleanupScript(cbName);
       };
 
       const url = `${SCRIPT_URL}?${params.toString()}&callback=${cbName}`;
@@ -480,8 +515,7 @@
           html += `</tbody></table>`;
           resultsDiv.innerHTML = html;
         }
-        delete window[cbName];
-        document.getElementById(cbName)?.remove();
+        cleanupScript(cbName);
       };
 
       const url = `${SCRIPT_URL}?action=searchServantData&code=${encodeURIComponent(code)}&callback=${cbName}`;
@@ -538,8 +572,7 @@
           printBtn.style.display = 'block';
         }
 
-        delete window[cbName];
-        document.getElementById(cbName)?.remove();
+        cleanupScript(cbName);
       };
 
       const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&callback=${cbName}`;
@@ -547,13 +580,20 @@
     }
 
     function addScriptTag(url, id) {
+      cleanupScript(id);
       const script = document.createElement('script');
       script.id = id;
       script.src = url;
       script.onerror = function() {
-        alert("❌ تعذر الاتصال بالسيرفر، تأكد من صحة الرابط.");
+        console.error("خطأ في الاتصال بالرابط:", url);
       };
       document.body.appendChild(script);
+    }
+
+    function cleanupScript(id) {
+      delete window[id];
+      const elem = document.getElementById(id);
+      if (elem) elem.remove();
     }
   </script>
 </body>
