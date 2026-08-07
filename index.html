@@ -6,9 +6,9 @@
   <title>نظام متابعة وافتقاد الخدام</title>
   <style>
     :root {
-      --primary-color: #5c1d24; /* لون عنابي كنسي */
+      --primary-color: #5c1d24;
       --secondary-color: #8b263e;
-      --gold-color: #d4af37; /* لون ذهبي */
+      --gold-color: #d4af37;
       --bg-color: #fdfaf7;
       --card-bg: #ffffff;
       --text-color: #2c1810;
@@ -45,7 +45,6 @@
       padding-bottom: 12px;
     }
 
-    /* Tabs Layout */
     .tabs {
       display: flex;
       border-bottom: 2px solid var(--border-color);
@@ -86,7 +85,6 @@
       display: block;
     }
 
-    /* Form Inputs */
     .form-group {
       margin-bottom: 18px;
       position: relative;
@@ -121,7 +119,6 @@
       background-color: #fff;
     }
 
-    /* Autocomplete Suggestions */
     .suggestions {
       position: absolute;
       top: 100%;
@@ -149,7 +146,6 @@
       font-weight: bold;
     }
 
-    /* Form Grid */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -162,7 +158,6 @@
       }
     }
 
-    /* Buttons */
     .btn {
       width: 100%;
       padding: 13px;
@@ -191,7 +186,6 @@
       background-color: #219150;
     }
 
-    /* Tables */
     .report-table {
       width: 100%;
       border-collapse: collapse;
@@ -216,7 +210,6 @@
       background-color: #faf6f0;
     }
 
-    /* Print Styles */
     @media print {
       body * {
         visibility: hidden;
@@ -241,14 +234,13 @@
   <div class="container">
     <h2>⛪ نظام متابعة وافتقاد الخدام</h2>
 
-    <!-- التبويبات -->
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('entryTab', this)">📝 تسجيل الحضور</button>
       <button class="tab-btn" onclick="switchTab('servantReportTab', this)">👤 سجل خادم</button>
       <button class="tab-btn" onclick="switchTab('dailyReportTab', this)">📊 تقرير يومي</button>
     </div>
 
-    <!-- 1. تبويب تسجيل البيانات -->
+    <!-- 1. تسجيل البيانات -->
     <div id="entryTab" class="tab-content active">
       <form id="attendanceForm" onsubmit="handleSaveData(event)">
         <div class="grid-2">
@@ -317,7 +309,6 @@
           </div>
         </div>
 
-        <!-- تقسيم العهد القديم والعهد الجديد -->
         <div class="grid-2">
           <div class="form-group">
             <label>قراءة العهد القديم:</label>
@@ -340,7 +331,7 @@
       </form>
     </div>
 
-    <!-- 2. تبويب سجل خادم معين -->
+    <!-- 2. سجل خادم معين -->
     <div id="servantReportTab" class="tab-content">
       <div class="form-group">
         <label>ادخل كود الخادم لعرض السجل:</label>
@@ -351,7 +342,7 @@
       <div id="servantHistoryResults" style="margin-top: 20px;"></div>
     </div>
 
-    <!-- 3. تبويب تقرير يومي لجميع الخدام -->
+    <!-- 3. تقرير يومي -->
     <div id="dailyReportTab" class="tab-content">
       <div class="form-group">
         <label>اختر التاريخ:</label>
@@ -370,14 +361,13 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
-    let allServantsList = []; // مصفوفة لتخزين قائمة الخدام في المتصفح للبحث السريع
+    let allServantsList = [];
 
     document.addEventListener("DOMContentLoaded", function() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('entryDate').value = today;
       document.getElementById('reportDate').value = today;
 
-      // جلب قائمة الخدام فور فتح الصفحة للبحث السريع المحلي
       loadAllServants();
     });
 
@@ -388,7 +378,7 @@
       btn.classList.add('active');
     }
 
-    // --- تحميل قائمة الخدام للبحث السريع المحلي ---
+    // جلب كل الخدام من الشيت
     function loadAllServants() {
       const cbName = 'cb_load_servants_' + Date.now();
       window[cbName] = function(data) {
@@ -401,7 +391,6 @@
       addScriptTag(url, cbName);
     }
 
-    // --- دالة تنظيف النص العربي للبحث السريع بالأجزاء والهمزات ---
     function cleanText(str) {
       if (!str) return '';
       return str.toString().toLowerCase().trim()
@@ -411,7 +400,7 @@
         .replace(/[\u064B-\u0652]/g, '');
     }
 
-    // --- البحث المباشر السريع محلياً ---
+    // البحث بالتزامن الحقيقي أثناء الكتابة
     function filterServants(query) {
       const suggBox = document.getElementById('suggestions');
       const cleanQ = cleanText(query);
@@ -421,14 +410,37 @@
         return;
       }
 
-      // تصفية الأسماء بناءً على احتواء أي جزء من الاسم أو الكود
+      // إذا لم تكن القائمة محملة بعد، يجلب البيانات من السيرفر مباشرة
+      if (allServantsList.length === 0) {
+        fetchDirectSearch(query);
+        return;
+      }
+
       const filtered = allServantsList.filter(item => {
         return cleanText(item.name).includes(cleanQ) || cleanText(item.code).includes(cleanQ);
       });
 
+      renderSuggestions(filtered);
+    }
+
+    function fetchDirectSearch(query) {
+      const cbName = 'cb_direct_search_' + Date.now();
+      window[cbName] = function(data) {
+        if (data && Array.isArray(data)) {
+          renderSuggestions(data);
+        }
+        cleanupScript(cbName);
+      };
+      const url = `${SCRIPT_URL}?action=searchServants&query=${encodeURIComponent(query)}&callback=${cbName}`;
+      addScriptTag(url, cbName);
+    }
+
+    function renderSuggestions(list) {
+      const suggBox = document.getElementById('suggestions');
       suggBox.innerHTML = '';
-      if (filtered.length > 0) {
-        filtered.forEach(item => {
+
+      if (list && list.length > 0) {
+        list.forEach(item => {
           const div = document.createElement('div');
           div.className = 'suggestion-item';
           div.innerText = `${item.name} (${item.code})`;
@@ -446,7 +458,6 @@
       }
     }
 
-    // --- حفظ البيانات ---
     function handleSaveData(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSave');
@@ -488,7 +499,6 @@
       addScriptTag(url, cbName);
     }
 
-    // --- سجل خادم معين ---
     function getServantHistory() {
       const code = document.getElementById('searchServantCodeInput').value.trim();
       const resultsDiv = document.getElementById('servantHistoryResults');
@@ -537,7 +547,6 @@
       addScriptTag(url, cbName);
     }
 
-    // --- تقرير كل الخدام بتاريخ معين ---
     function getDailyReport() {
       const dateVal = document.getElementById('reportDate').value;
       const resultsDiv = document.getElementById('reportResults');
