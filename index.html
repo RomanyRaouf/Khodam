@@ -249,7 +249,7 @@
       <button class="tab-btn" onclick="switchTab('dailyReportTab', this)">📊 التقارير اليومية</button>
     </div>
 
-    <!-- 1. تسجيل البيانات -->
+    <!-- 1. تسجيل الحضور -->
     <div id="entryTab" class="tab-content active">
       <form id="attendanceForm" onsubmit="handleSaveData(event)">
         <div class="grid-2">
@@ -358,7 +358,7 @@
       <div id="servantHistoryResults" style="margin-top: 20px;"></div>
     </div>
 
-    <!-- 3. التقارير اليومية (الكل / غياب) -->
+    <!-- 3. التقارير اليومية -->
     <div id="dailyReportTab" class="tab-content">
       <div class="grid-2 filter-box">
         <div class="form-group">
@@ -386,7 +386,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
+    // تم إضافة رابط السكريبت الخاص بك هنا مباشرةً
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9hWVMisFjGnfzjPyiORQu7Mqbkq_ASwZqX2OAzHCfSNYSyET2JrpFaJcBDmWcswmkQw/exec";
 
     let allServantsList = [];
 
@@ -482,7 +483,6 @@
       }
     }
 
-    // حفظ حضور فردي
     function handleSaveData(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSave');
@@ -524,7 +524,6 @@
       addScriptTag(url, cbName);
     }
 
-    // إنهاء التسجيل وتثبيت باقي الخدام غائبين
     function handleFinishRegistration() {
       const selectedDate = document.getElementById('entryDate').value;
       if (!selectedDate) {
@@ -604,7 +603,6 @@
       addScriptTag(url, cbName);
     }
 
-    // تقرير يومي (الكل / غائبين / حاضرين)
     function getDailyReport() {
       const dateVal = document.getElementById('reportDate').value;
       const filterVal = document.getElementById('reportFilter').value;
