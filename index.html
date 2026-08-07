@@ -336,8 +336,9 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWwbxR9rAWwa0dRPTp4JEFZomiLBaw7bHQuW4rylnhxmylEEatxbsZ9opIULwgeElXtA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbOUVggH87SIFIKduHa8ZhzrTj3wn2iTPDB-ePx2ArExe7UzDHT3PK9NK5nqmzbKICLA/exec";
     let allServantsList = [];
+    const dailyReportCache = {};
 
     document.addEventListener("DOMContentLoaded", function() {
       const today = new Date().toISOString().split('T')[0];
@@ -355,7 +356,7 @@
     }
 
     function forceReloadData() {
-      localStorage.removeItem('cached_servants_v4');
+      localStorage.removeItem('cached_servants_v5');
       const statusBadge = document.getElementById('loadStatus');
       statusBadge.innerText = "⏳ جاري التحديث...";
       statusBadge.className = "status-badge status-loading";
@@ -364,7 +365,7 @@
 
     function loadAllServantsOnStart() {
       const statusBadge = document.getElementById('loadStatus');
-      const cached = localStorage.getItem('cached_servants_v4');
+      const cached = localStorage.getItem('cached_servants_v5');
 
       if (cached) {
         try {
@@ -393,7 +394,7 @@
               service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
             }));
 
-            localStorage.setItem('cached_servants_v4', JSON.stringify(allServantsList));
+            localStorage.setItem('cached_servants_v5', JSON.stringify(allServantsList));
             statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
             statusBadge.className = "status-badge status-ready";
             renderAllServantsTable(allServantsList);
@@ -415,7 +416,7 @@
             name: item.name ? item.name.toString().trim() : '',
             service: (item.service && item.service !== '-') ? item.service.toString().trim() : ''
           }));
-          localStorage.setItem('cached_servants_v4', JSON.stringify(allServantsList));
+          localStorage.setItem('cached_servants_v5', JSON.stringify(allServantsList));
           document.getElementById('loadStatus').innerText = `✅ جاهز (${allServantsList.length} خادم)`;
           document.getElementById('loadStatus').className = "status-badge status-ready";
           renderAllServantsTable(allServantsList);
@@ -547,6 +548,10 @@
       window[cbName] = function(res) {
         if (res && res.status === "success") {
           alert("✅ تم حفظ حضور الخادم بنجاح!");
+          
+          // إفراغ كاش التقارير اليومية عند إضافة تغييرات جديدة
+          for (let key in dailyReportCache) delete dailyReportCache[key];
+
           document.getElementById('attendanceForm').reset();
           document.getElementById('servantService').value = '';
           const today = new Date().toISOString().split('T')[0];
@@ -582,6 +587,9 @@
       window[cbName] = function(res) {
         if (res && res.status === "success") {
           alert(`✅ تم إنهاء التسجيل بنجاح!\nتم إدراج ${res.count} خادم كـ "غياب".`);
+          
+          // إفراغ كاش التقارير اليومية لضمان قراءة الغائبين الجدد
+          for (let key in dailyReportCache) delete dailyReportCache[key];
         } else {
           alert("❌ حدث خطأ أثناء إنهاء التسجيل.");
         }
@@ -654,49 +662,66 @@
         return;
       }
 
-      resultsDiv.innerHTML = "⏳ جاري تحميل التقرير...";
+      const cacheKey = `${dateVal}_${filterVal}`;
+
+      // 1. استخدام الكاش المباشر عند توفره
+      if (dailyReportCache[cacheKey]) {
+        renderDailyReportTable(dailyReportCache[cacheKey], dateVal, resultsDiv);
+        return;
+      }
+
+      resultsDiv.innerHTML = "<div style='text-align:center; padding: 20px;'>⚡ جاري إعداد التقرير بسرعة...</div>";
 
       const cbName = 'cb_daily_' + Date.now();
 
       window[cbName] = function(records) {
-        if (!records || !Array.isArray(records) || records.length === 0) {
-          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
+        if (records && Array.isArray(records)) {
+          dailyReportCache[cacheKey] = records;
+          renderDailyReportTable(records, dateVal, resultsDiv);
         } else {
-          let html = `<table class="report-table">
-            <thead>
-              <tr>
-                <th>الخادم</th>
-                <th>الخدمة</th>
-                <th>قداس</th>
-                <th>مدارس أحد</th>
-                <th>اجتماع</th>
-                <th>تحضير</th>
-                <th>الكتاب المقدس</th>
-              </tr>
-            </thead>
-            <tbody>`;
-
-          records.forEach(function(rec) {
-            html += `<tr>
-              <td><b>${rec.name || ''}</b><br><small>(كود: ${rec.code || ''})</small></td>
-              <td>${rec.service || '-'}</td>
-              <td>${rec.qaddas || '-'}</td>
-              <td>${rec.sundaySchool || '-'}</td>
-              <td>${rec.meeting || '-'}</td>
-              <td>${rec.preparation || '-'}</td>
-              <td>${rec.bible || '-'}</td>
-            </tr>`;
-          });
-
-          html += `</tbody></table>`;
-          resultsDiv.innerHTML = html;
+          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
         }
-
         cleanupScript(cbName);
       };
 
       const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}&callback=${cbName}`;
       addScriptTag(url, cbName);
+    }
+
+    function renderDailyReportTable(records, dateVal, resultsDiv) {
+      if (!records || records.length === 0) {
+        resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
+        return;
+      }
+
+      let html = `<table class="report-table">
+        <thead>
+          <tr>
+            <th>الخادم</th>
+            <th>الخدمة</th>
+            <th>قداس</th>
+            <th>مدارس أحد</th>
+            <th>اجتماع</th>
+            <th>تحضير</th>
+            <th>الكتاب المقدس</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      records.forEach(function(rec) {
+        html += `<tr>
+          <td><b>${rec.name || ''}</b><br><small>(كود: ${rec.code || ''})</small></td>
+          <td>${rec.service || '-'}</td>
+          <td>${rec.qaddas || '-'}</td>
+          <td>${rec.sundaySchool || '-'}</td>
+          <td>${rec.meeting || '-'}</td>
+          <td>${rec.preparation || '-'}</td>
+          <td>${rec.bible || '-'}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      resultsDiv.innerHTML = html;
     }
 
     function addScriptTag(url, id) {
