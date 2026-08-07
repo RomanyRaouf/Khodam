@@ -176,6 +176,15 @@
       background-color: var(--secondary-color);
     }
 
+    .btn-finish {
+      background-color: #c0392b;
+      border-color: #a93226;
+    }
+
+    .btn-finish:hover {
+      background-color: #922b21;
+    }
+
     .btn-print {
       background-color: #27ae60;
       border-color: #219150;
@@ -223,7 +232,7 @@
         top: 0;
         width: 100%;
       }
-      .btn, .tabs {
+      .btn, .tabs, .filter-box {
         display: none !important;
       }
     }
@@ -237,7 +246,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('entryTab', this)">📝 تسجيل الحضور</button>
       <button class="tab-btn" onclick="switchTab('servantReportTab', this)">👤 سجل خادم</button>
-      <button class="tab-btn" onclick="switchTab('dailyReportTab', this)">📊 تقرير يومي</button>
+      <button class="tab-btn" onclick="switchTab('dailyReportTab', this)">📊 التقارير اليومية</button>
     </div>
 
     <!-- 1. تسجيل البيانات -->
@@ -327,8 +336,15 @@
           </div>
         </div>
 
-        <button type="submit" id="btnSave" class="btn">💾 حفظ البيانات</button>
+        <button type="submit" id="btnSave" class="btn">💾 حفظ حضور الخادم</button>
       </form>
+
+      <hr style="margin: 25px 0; border: 0; border-top: 2px solid var(--border-color);">
+
+      <!-- زر إنهاء التسجيل -->
+      <button type="button" id="btnFinish" onclick="handleFinishRegistration()" class="btn btn-finish">
+        🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)
+      </button>
     </div>
 
     <!-- 2. سجل خادم معين -->
@@ -342,12 +358,23 @@
       <div id="servantHistoryResults" style="margin-top: 20px;"></div>
     </div>
 
-    <!-- 3. تقرير يومي -->
+    <!-- 3. التقارير اليومية (الكل / غياب) -->
     <div id="dailyReportTab" class="tab-content">
-      <div class="form-group">
-        <label>اختر التاريخ:</label>
-        <input type="date" id="reportDate">
+      <div class="grid-2 filter-box">
+        <div class="form-group">
+          <label>اختر التاريخ:</label>
+          <input type="date" id="reportDate">
+        </div>
+        <div class="form-group">
+          <label>نوع التقرير:</label>
+          <select id="reportFilter">
+            <option value="all">عرض الكل (حضور وغياب)</option>
+            <option value="absent">عرض الغائبين فقط ❌</option>
+            <option value="present">عرض الحاضرين فقط ✅</option>
+          </select>
+        </div>
       </div>
+      
       <button onclick="getDailyReport()" class="btn">📊 عرض التقرير</button>
 
       <div id="printArea">
@@ -359,7 +386,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-UCUYMvCMMGblB5LUYxx6IXYsrp__lSxkqEQ42w-nrEh5W-YWeWNEs2ZMvtAf5OY/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPh2KCwGD1tMtoCJWyqxfULCErM6nazkqsky8q75s4vnOSHjgfajVdfL_sz4He2oVq_g/exec";
 
     let allServantsList = [];
 
@@ -378,7 +405,6 @@
       btn.classList.add('active');
     }
 
-    // جلب كل الخدام من الشيت
     function loadAllServants() {
       const cbName = 'cb_load_servants_' + Date.now();
       window[cbName] = function(data) {
@@ -400,7 +426,6 @@
         .replace(/[\u064B-\u0652]/g, '');
     }
 
-    // البحث بالتزامن الحقيقي أثناء الكتابة
     function filterServants(query) {
       const suggBox = document.getElementById('suggestions');
       const cleanQ = cleanText(query);
@@ -410,7 +435,6 @@
         return;
       }
 
-      // إذا لم تكن القائمة محملة بعد، يجلب البيانات من السيرفر مباشرة
       if (allServantsList.length === 0) {
         fetchDirectSearch(query);
         return;
@@ -458,6 +482,7 @@
       }
     }
 
+    // حفظ حضور فردي
     function handleSaveData(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSave');
@@ -483,7 +508,7 @@
       const cbName = 'cb_save_' + Date.now();
       window[cbName] = function(res) {
         if (res && res.status === "success") {
-          alert("✅ تم حفظ البيانات بنجاح!");
+          alert("✅ تم حفظ الحضور بنجاح!");
           document.getElementById('attendanceForm').reset();
           const today = new Date().toISOString().split('T')[0];
           document.getElementById('entryDate').value = today;
@@ -491,11 +516,43 @@
           alert("❌ حدث خطأ أثناء الحفظ.");
         }
         btn.disabled = false;
-        btn.innerText = "💾 حفظ البيانات";
+        btn.innerText = "💾 حفظ حضور الخادم";
         cleanupScript(cbName);
       };
 
       const url = `${SCRIPT_URL}?${params.toString()}&callback=${cbName}`;
+      addScriptTag(url, cbName);
+    }
+
+    // إنهاء التسجيل وتثبيت باقي الخدام غائبين
+    function handleFinishRegistration() {
+      const selectedDate = document.getElementById('entryDate').value;
+      if (!selectedDate) {
+        alert("يرجى تحديد التاريخ أولاً!");
+        return;
+      }
+
+      if (!confirm(`هل أنت تأكد من إنهاء التسجيل لتاريخ ${selectedDate}؟\nسيتم تسجيل جميع الخدام الذين لم يسجلوا حضورهم كـ (غياب) تلقائياً.`)) {
+        return;
+      }
+
+      const btn = document.getElementById('btnFinish');
+      btn.disabled = true;
+      btn.innerText = "⏳ جاري تسجيل باقي الخدام غياب...";
+
+      const cbName = 'cb_finish_' + Date.now();
+      window[cbName] = function(res) {
+        if (res && res.status === "success") {
+          alert(`✅ تم إنهاء التسجيل بنجاح!\nتم إدراج ${res.count} خادم كـ "غياب".`);
+        } else {
+          alert("❌ حدث خطأ أثناء إنهاء التسجيل.");
+        }
+        btn.disabled = false;
+        btn.innerText = "🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)";
+        cleanupScript(cbName);
+      };
+
+      const url = `${SCRIPT_URL}?action=finishRegistration&date=${encodeURIComponent(selectedDate)}&callback=${cbName}`;
       addScriptTag(url, cbName);
     }
 
@@ -547,8 +604,10 @@
       addScriptTag(url, cbName);
     }
 
+    // تقرير يومي (الكل / غائبين / حاضرين)
     function getDailyReport() {
       const dateVal = document.getElementById('reportDate').value;
+      const filterVal = document.getElementById('reportFilter').value;
       const resultsDiv = document.getElementById('reportResults');
       const printBtn = document.getElementById('btnReportPrint');
 
@@ -557,16 +616,20 @@
         return;
       }
 
-      resultsDiv.innerHTML = "⏳ جاري تحميل تقرير اليوم...";
+      resultsDiv.innerHTML = "⏳ جاري تحميل التقرير...";
       printBtn.style.display = 'none';
 
       const cbName = 'cb_daily_' + Date.now();
 
       window[cbName] = function(records) {
         if (!records || !Array.isArray(records) || records.length === 0) {
-          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات مسجلة لتاريخ: <b>${dateVal}</b></p>`;
+          resultsDiv.innerHTML = `<p style='text-align:center; color:#777;'>لا توجد سجلات لتاريخ: <b>${dateVal}</b></p>`;
         } else {
-          let html = `<h4 style="margin: 0 0 10px 0; color: var(--primary-color); text-align: center;">📊 تقرير افتقاد الخدام ليوم: ${dateVal}</h4>`;
+          let filterTitle = "تقرير الشامل";
+          if (filterVal === "absent") filterTitle = "تقرير الخدام الغائبين ❌";
+          if (filterVal === "present") filterTitle = "تقرير الخدام الحاضرين ✅";
+
+          let html = `<h4 style="margin: 0 0 10px 0; color: var(--primary-color); text-align: center;">📊 ${filterTitle} ليوم: ${dateVal}</h4>`;
           html += `<table class="report-table">
             <thead>
               <tr>
@@ -599,7 +662,7 @@
         cleanupScript(cbName);
       };
 
-      const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&callback=${cbName}`;
+      const url = `${SCRIPT_URL}?action=getAllServantsDataByDate&date=${encodeURIComponent(dateVal)}&filter=${encodeURIComponent(filterVal)}&callback=${cbName}`;
       addScriptTag(url, cbName);
     }
 
