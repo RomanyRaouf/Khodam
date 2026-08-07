@@ -27,7 +27,7 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
       background: var(--card-bg);
       padding: 25px 30px;
@@ -170,8 +170,14 @@
       gap: 18px;
     }
 
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+    }
+
     @media (max-width: 600px) {
-      .grid-2 {
+      .grid-2, .grid-3 {
         grid-template-columns: 1fr;
       }
     }
@@ -209,10 +215,6 @@
       margin-bottom: 15px;
     }
 
-    .btn-print:hover {
-      background-color: #219150;
-    }
-
     .report-table {
       width: 100%;
       border-collapse: collapse;
@@ -223,7 +225,7 @@
 
     .report-table th, .report-table td {
       border: 1px solid var(--border-color);
-      padding: 12px 10px;
+      padding: 10px;
       text-align: center;
       font-size: 14px;
     }
@@ -235,6 +237,25 @@
 
     .report-table tr:nth-child(even) {
       background-color: #faf6f0;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .clickable-row:hover {
+      background-color: #f0e2d3 !important;
+    }
+
+    .servants-list-container {
+      margin-top: 30px;
+      background: #fdfaf7;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 15px;
+      max-height: 350px;
+      overflow-y: auto;
     }
 
     @media print {
@@ -250,7 +271,7 @@
         top: 0;
         width: 100%;
       }
-      .btn, .tabs, .filter-box {
+      .btn, .tabs, .filter-box, .servants-list-container {
         display: none !important;
       }
     }
@@ -273,28 +294,33 @@
         <div class="grid-2">
           <div class="form-group">
             <label>
-              البحث / اكتب اسم الخادم أو الكود:
+              البحث عن الخادم:
               <span id="loadStatus" class="status-badge status-loading">⏳ جاري تحميل القائمة...</span>
             </label>
-            <input type="text" id="searchInput" placeholder="ابحث بأي جزء من الاسم..." oninput="filterServants(this.value)" autocomplete="off">
+            <input type="text" id="searchInput" placeholder="ابحث بالاسم أو الكود..." oninput="filterServants(this.value)" autocomplete="off">
             <div id="suggestions" class="suggestions" style="display: none;"></div>
           </div>
 
           <div class="form-group">
-            <label>كود الخادم:</label>
-            <input type="text" id="servantCode" required readonly style="background: #eee5dc;">
+            <label>التاريخ:</label>
+            <input type="date" id="entryDate" required>
           </div>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-3">
+          <div class="form-group">
+            <label>كود الخادم:</label>
+            <input type="text" id="servantCode" required readonly style="background: #eee5dc;">
+          </div>
+
           <div class="form-group">
             <label>اسم الخادم:</label>
             <input type="text" id="servantName" required readonly style="background: #eee5dc;">
           </div>
 
           <div class="form-group">
-            <label>التاريخ:</label>
-            <input type="date" id="entryDate" required>
+            <label>الخدمة / الفصل:</label>
+            <input type="text" id="servantService" readonly style="background: #eee5dc;" placeholder="-">
           </div>
         </div>
 
@@ -362,10 +388,15 @@
 
       <hr style="margin: 25px 0; border: 0; border-top: 2px solid var(--border-color);">
 
-      <!-- زر إنهاء التسجيل -->
       <button type="button" id="btnFinish" onclick="handleFinishRegistration()" class="btn btn-finish">
         🚫 إنهاء التسجيل (تسجيل باقي الخدام غياب)
       </button>
+
+      <!-- جدول كافة الخدام الظاهر بالأسفل -->
+      <div class="servants-list-container">
+        <h4 style="margin: 0 0 10px 0; color: var(--primary-color);">📋 دليل الخدام المتاحين (اضغط على الاسم لاختياره):</h4>
+        <div id="allServantsTableArea">⏳ جاري التحميل...</div>
+      </div>
     </div>
 
     <!-- 2. سجل خادم معين -->
@@ -407,7 +438,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3-2xTOxYoIuoRqsOxaap0NmxMkmJX8kB9xAmzdpePWXtQj0bSgi1E8vZ59GhiRd-dzQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9hWVMisFjGnfzjPyiORQu7Mqbkq_ASwZqX2OAzHCfSNYSyET2JrpFaJcBDmWcswmkQw/exec";
 
     let allServantsList = [];
 
@@ -416,7 +447,6 @@
       document.getElementById('entryDate').value = today;
       document.getElementById('reportDate').value = today;
 
-      // بدء تحميل كامل أسماء وأكواد الخدام فور فتح الصفحة
       loadAllServantsOnStart();
     });
 
@@ -427,7 +457,6 @@
       btn.classList.add('active');
     }
 
-    // 1. تحميل قائمة الخدام بالكامل في البداية
     function loadAllServantsOnStart() {
       const statusBadge = document.getElementById('loadStatus');
       const cbName = 'cb_load_servants_' + Date.now();
@@ -437,8 +466,11 @@
           allServantsList = data;
           statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
           statusBadge.className = "status-badge status-ready";
+          
+          renderAllServantsTable(allServantsList);
         } else {
           statusBadge.innerText = "❌ تعذر التحميل";
+          document.getElementById('allServantsTableArea').innerHTML = "<p style='color:red;'>فشل تحميل قائمة الخدام.</p>";
         }
         cleanupScript(cbName);
       };
@@ -447,7 +479,48 @@
       addScriptTag(url, cbName);
     }
 
-    // 2. دالة تنظيف النص العربي للبحث المرن
+    function renderAllServantsTable(list) {
+      const area = document.getElementById('allServantsTableArea');
+      if (!list || list.length === 0) {
+        area.innerHTML = "<p>لا يوجد خدام مسجلين.</p>";
+        return;
+      }
+
+      let html = `<table class="report-table">
+        <thead>
+          <tr>
+            <th>الكود</th>
+            <th>اسم الخادم</th>
+            <th>الخدمة / الفصل</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      list.forEach(item => {
+        html += `<tr class="clickable-row" onclick="selectServant('${item.code}', '${escapeHtml(item.name)}', '${escapeHtml(item.service || '')}')">
+          <td><b>${item.code}</b></td>
+          <td>${item.name}</td>
+          <td>${item.service || '-'}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      area.innerHTML = html;
+    }
+
+    function selectServant(code, name, service) {
+      document.getElementById('servantCode').value = code;
+      document.getElementById('servantName').value = name;
+      document.getElementById('servantService').value = service;
+      document.getElementById('searchInput').value = name;
+      document.getElementById('suggestions').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function escapeHtml(text) {
+      return text ? text.replace(/'/g, "\\'") : '';
+    }
+
     function cleanText(str) {
       if (!str) return '';
       return str.toString()
@@ -460,24 +533,25 @@
         .replace(/\s+/g, ' ');
     }
 
-    // 3. الفلترة المباشرة داخل المتصفح من القائمة المحملة
     function filterServants(query) {
       const suggBox = document.getElementById('suggestions');
       const cleanQ = cleanText(query);
 
       if (!cleanQ) {
         suggBox.style.display = 'none';
+        renderAllServantsTable(allServantsList);
         return;
       }
 
-      // البحث في القائمة المحملة مسبقاً
       const filtered = allServantsList.filter(item => {
         const cName = cleanText(item.name);
         const cCode = cleanText(item.code);
-        return cName.includes(cleanQ) || cCode.includes(cleanQ);
+        const cService = cleanText(item.service);
+        return cName.includes(cleanQ) || cCode.includes(cleanQ) || cService.includes(cleanQ);
       });
 
       renderSuggestions(filtered);
+      renderAllServantsTable(filtered); // تصفية الجدول بالأسفل أيضاً أثناء الكتابة
     }
 
     function renderSuggestions(list) {
@@ -488,12 +562,9 @@
         list.forEach(item => {
           const div = document.createElement('div');
           div.className = 'suggestion-item';
-          div.innerText = `${item.name} (${item.code})`;
+          div.innerText = `${item.name} (${item.code}) - ${item.service || ''}`;
           div.onclick = function() {
-            document.getElementById('servantCode').value = item.code;
-            document.getElementById('servantName').value = item.name;
-            document.getElementById('searchInput').value = item.name;
-            suggBox.style.display = 'none';
+            selectServant(item.code, item.name, item.service || '');
           };
           suggBox.appendChild(div);
         });
@@ -517,6 +588,7 @@
         action: 'saveData',
         code: document.getElementById('servantCode').value,
         name: document.getElementById('servantName').value,
+        service: document.getElementById('servantService').value,
         date: document.getElementById('entryDate').value,
         qaddas: document.getElementById('qaddas').value,
         sundaySchool: document.getElementById('sundaySchool').value,
@@ -530,6 +602,7 @@
         if (res && res.status === "success") {
           alert("✅ تم حفظ الحضور بنجاح!");
           document.getElementById('attendanceForm').reset();
+          document.getElementById('servantService').value = '';
           const today = new Date().toISOString().split('T')[0];
           document.getElementById('entryDate').value = today;
         } else {
@@ -595,6 +668,7 @@
             <thead>
               <tr>
                 <th>التاريخ</th>
+                <th>الخدمة</th>
                 <th>قداس</th>
                 <th>مدارس أحد</th>
                 <th>اجتماع</th>
@@ -606,6 +680,7 @@
           records.forEach(r => {
             html += `<tr>
               <td>${r.date}</td>
+              <td>${r.service || '-'}</td>
               <td>${r.qaddas}</td>
               <td>${r.sundaySchool}</td>
               <td>${r.meeting}</td>
@@ -652,6 +727,7 @@
             <thead>
               <tr>
                 <th>الخادم</th>
+                <th>الخدمة / الفصل</th>
                 <th>قداس</th>
                 <th>مدارس أحد</th>
                 <th>اجتماع</th>
@@ -664,6 +740,7 @@
           records.forEach(function(rec) {
             html += `<tr>
               <td><b>${rec.name || ''}</b><br><small>(${rec.code || ''})</small></td>
+              <td>${rec.service || '-'}</td>
               <td>${rec.qaddas || '-'}</td>
               <td>${rec.sundaySchool || '-'}</td>
               <td>${rec.meeting || '-'}</td>
