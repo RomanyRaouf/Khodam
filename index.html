@@ -139,7 +139,7 @@
     .btn-finish { background-color: #c0392b; border-color: #a93226; }
 
     .btn-reload {
-      background-color: #d9534f;
+      background-color: #27ae60;
       color: white;
       border: none;
       padding: 6px 12px;
@@ -184,7 +184,7 @@
       <h2>⛪ نظام متابعة وافتقاد الخدام</h2>
       <div>
         <span id="loadStatus" class="status-badge status-loading">⏳ جاري التحميل...</span>
-        <button class="btn-reload" onclick="forceReloadData()">🔄 تحديث مباشر للبيانات</button>
+        <button class="btn-reload" onclick="forceReloadData()">🔄 تحديث القائمة</button>
       </div>
     </div>
 
@@ -354,26 +354,40 @@
     }
 
     function forceReloadData() {
-      localStorage.clear();
+      localStorage.removeItem('cached_servants_fast_v1');
       const statusBadge = document.getElementById('loadStatus');
-      statusBadge.innerText = "⏳ جاري التحميل المباشر...";
+      statusBadge.innerText = "⏳ جاري التحديث من الشيت...";
       statusBadge.className = "status-badge status-loading";
-      loadAllServantsOnStart();
+      loadAllServantsOnStart(true);
     }
 
-    function loadAllServantsOnStart() {
+    function loadAllServantsOnStart(force = false) {
       const statusBadge = document.getElementById('loadStatus');
+
+      // محاولة القراءة الفورية من الذاكرة المحلية (تستغرق 0 ثانية)
+      const cached = localStorage.getItem('cached_servants_fast_v1');
+      if (cached && !force) {
+        try {
+          allServantsList = JSON.parse(cached);
+          statusBadge.innerText = `⚡ جاهز (${allServantsList.length} خادم - ذاكرة مؤقتة)`;
+          statusBadge.className = "status-badge status-ready";
+          renderAllServantsTable(allServantsList);
+          return;
+        } catch(e) {
+          console.error(e);
+        }
+      }
+
+      // الجلب المباشر من السيرفر عند عدم وجود كاش أو اضطرار للتحديث
       const cbName = 'cb_load_servants_' + Date.now();
 
       window[cbName] = function(data) {
         if (data && Array.isArray(data) && data.length > 0) {
           allServantsList = data.map(item => {
-            // معالجة تبديل الأعمدة تلقائياً إذا كانت مصفوفة السكربت ترجع البيانات مقلوبة
             let rawCode = item.code || '';
             let rawName = item.name || '';
             let rawService = item.service || '';
 
-            // إذا كان الكود نصاً طويلاً والاسم رقماً، قم بإعادة الترتيب الصحيح
             if (isNaN(rawCode) && !isNaN(rawName)) {
               let temp = rawCode;
               rawCode = rawName;
@@ -387,6 +401,9 @@
             };
           });
 
+          // حفظ البيانات في الكاش لفتح سريع جداً المرة القادمة
+          localStorage.setItem('cached_servants_fast_v1', JSON.stringify(allServantsList));
+
           statusBadge.innerText = `✅ جاهز (${allServantsList.length} خادم)`;
           statusBadge.className = "status-badge status-ready";
           renderAllServantsTable(allServantsList);
@@ -397,7 +414,7 @@
         cleanupScript(cbName);
       };
 
-      const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}&_v=${Date.now()}`;
+      const url = `${SCRIPT_URL}?action=searchServants&callback=${cbName}`;
       addScriptTag(url, cbName);
     }
 
