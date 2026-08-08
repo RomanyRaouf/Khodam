@@ -246,12 +246,14 @@
         </select>
       </div>
 
+            <!-- الكتاب المقدس -->
       <div class="form-group">
-        <label for="bibleReading">قراءة الكتاب المقدس:</label>
-        <select id="bibleReading">
-          <option value="مواظب">مواظب</option>
-          <option value="غير مواظب">غير مواظب</option>
-        </select>
+        <label>قراءة الكتاب المقدس:</label>
+        <div class="checkbox-group" id="bibleReadingGroup">
+          <label class="checkbox-item"><input type="checkbox" value="عهد قديم"> 📖 عهد قديم</label>
+          <label class="checkbox-item"><input type="checkbox" value="عهد جديد"> 📖 عهد جديد</label>
+          <label class="checkbox-item"><input type="checkbox" value="غير منتظم"> 📖 غير منتظم</label>
+        </div>
       </div>
 
       <button type="submit" class="submit-btn" id="saveBtn">💾 حفظ الحضور</button>
