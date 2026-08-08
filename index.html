@@ -26,6 +26,10 @@
             font-size: 14px;
             font-weight: bold;
             color: #333;
+            transition: 0.2s;
+        }
+        .nav-btn:hover {
+            background: #e2e2e2;
         }
         .nav-btn.active {
             background: #5a1827;
@@ -33,7 +37,8 @@
             border-color: #5a1827;
         }
 
-        .search-section {
+        .page-section {
+            display: none;
             max-width: 600px;
             margin: 0 auto;
             background: #fff;
@@ -41,6 +46,10 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
+        .page-section.active-section {
+            display: block;
+        }
+
         .search-label {
             font-size: 16px;
             font-weight: bold;
@@ -98,28 +107,65 @@
 </head>
 <body>
 
+    <!-- الأزرار العلوية -->
     <div class="nav-bar">
-        <button class="nav-btn">إضافة خادم جديد ✏️</button>
-        <button class="nav-btn active">تسجيل حضور ومتابعة ✅</button>
-        <button class="nav-btn">بحث بالاسم 🔍</button>
-        <button class="nav-btn">تقرير الحضور والغياب 📊</button>
+        <button class="nav-btn" id="btn-add" onclick="switchTab('add')">إضافة خادم جديد ✏️</button>
+        <button class="nav-btn active" id="btn-attendance" onclick="switchTab('attendance')">تسجيل حضور ومتابعة ✅</button>
+        <button class="nav-btn" id="btn-search" onclick="switchTab('search')">بحث بالاسم 🔍</button>
+        <button class="nav-btn" id="btn-report" onclick="switchTab('report')">تقرير الحضور والغياب 📊</button>
     </div>
 
-    <div class="search-section">
+    <!-- 1. قسم تسجيل حضور ومتابعة -->
+    <div id="section-attendance" class="page-section active-section">
         <label class="search-label">اكتب جزء من اسم الخادم لاختياره:</label>
-        
         <div class="search-box-wrapper">
             <input type="text" id="searchInput" class="search-input" placeholder="اكتب هنا..." oninput="onSearchInput(this.value)">
             <div id="searchResults"></div>
         </div>
-
         <div class="date-section">
             تاريخ المتابعة: <span id="currentDate"></span>
         </div>
     </div>
 
+    <!-- 2. قسم إضافة خادم جديد -->
+    <div id="section-add" class="page-section">
+        <h3>إضافة خادم جديد</h3>
+        <p>محتوى صفحة إضافة خادم جديد...</p>
+    </div>
+
+    <!-- 3. قسم بحث بالاسم -->
+    <div id="section-search" class="page-section">
+        <h3>بحث شامل بالاسم</h3>
+        <p>محتوى صفحة البحث الشامل...</p>
+    </div>
+
+    <!-- 4. قسم تقرير الحضور والغياب -->
+    <div id="section-report" class="page-section">
+        <h3>تقرير الحضور والغياب</h3>
+        <p>محتوى صفحة التقارير...</p>
+    </div>
+
     <script>
         document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG');
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active-section'));
+
+            if (tabName === 'add') {
+                document.getElementById('btn-add').classList.add('active');
+                document.getElementById('section-add').classList.add('active-section');
+            } else if (tabName === 'attendance') {
+                document.getElementById('btn-attendance').classList.add('active');
+                document.getElementById('section-attendance').classList.add('active-section');
+            } else if (tabName === 'search') {
+                document.getElementById('btn-search').classList.add('active');
+                document.getElementById('section-search').classList.add('active-section');
+            } else if (tabName === 'report') {
+                document.getElementById('btn-report').classList.add('active');
+                document.getElementById('section-report').classList.add('active-section');
+            }
+        }
 
         function onSearchInput(query) {
             const trimmedQuery = query.trim();
@@ -162,11 +208,10 @@
 
         document.addEventListener('click', function(event) {
             const container = document.querySelector('.search-box-wrapper');
-            if (!container.contains(event.target)) {
+            if (container && !container.contains(event.target)) {
                 document.getElementById('searchResults').style.display = 'none';
             }
         });
     </script>
-
 </body>
 </html>
