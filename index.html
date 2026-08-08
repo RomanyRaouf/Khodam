@@ -4,9 +4,63 @@
     <meta charset="UTF-8">
     <title>تسجيل حضور ومتابعة الخدام</title>
     <style>
-        body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; padding: 20px; }
-        .search-container { position: relative; max-width: 500px; margin: 20px auto; }
-        input[type="text"] { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        body { font-family: Tahoma, sans-serif; background-color: #f9f9f9; margin: 0; padding: 20px; direction: rtl; }
+        
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-btn {
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .nav-btn.active {
+            background: #5a1827;
+            color: #fff;
+            border-color: #5a1827;
+        }
+
+        .search-section {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .search-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .search-box-wrapper {
+            position: relative;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 2px solid #333;
+            border-radius: 6px;
+            outline: none;
+        }
+        
         #searchResults {
             display: none;
             position: absolute;
@@ -22,45 +76,61 @@
             box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
         }
         .search-result-item {
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
+            font-size: 15px;
         }
         .search-result-item:hover {
             background-color: #f1f1f1;
         }
         .no-result {
-            padding: 10px;
+            padding: 12px;
             color: #777;
             text-align: center;
+        }
+        .date-section {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 15px;
         }
     </style>
 </head>
 <body>
 
-    <div class="search-container">
-        <label for="searchInput">اكتب جزء من اسم الخادم لاختياره:</label>
-        <!-- حقل البحث مع ربطه بدالة الفلترة -->
-        <input type="text" id="searchInput" placeholder="اكتب الاسم هنا..." oninput="onSearchInput(this.value)">
+    <div class="nav-bar">
+        <button class="nav-btn">إضافة خادم جديد ✏️</button>
+        <button class="nav-btn active">تسجيل حضور ومتابعة ✅</button>
+        <button class="nav-btn">بحث بالاسم 🔍</button>
+        <button class="nav-btn">تقرير الحضور والغياب 📊</button>
+    </div>
+
+    <div class="search-section">
+        <label class="search-label">اكتب جزء من اسم الخادم لاختياره:</label>
         
-        <!-- قائمة منسدلة ديناميكية لعرض النتائج -->
-        <div id="searchResults"></div>
+        <div class="search-box-wrapper">
+            <input type="text" id="searchInput" class="search-input" placeholder="اكتب هنا..." oninput="onSearchInput(this.value)">
+            <div id="searchResults"></div>
+        </div>
+
+        <div class="date-section">
+            تاريخ المتابعة: <span id="currentDate"></span>
+        </div>
     </div>
 
     <script>
-        // دالة الفلترة والبحث الفوري أثناء الكتابة
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-EG');
+
         function onSearchInput(query) {
             const trimmedQuery = query.trim();
             const resultsContainer = document.getElementById('searchResults');
 
-            // إذا كان الحقل فارغاً، إخفاء القائمة وتفريغها
             if (trimmedQuery.length === 0) {
                 resultsContainer.innerHTML = '';
                 resultsContainer.style.display = 'none';
                 return;
             }
 
-            // استدعاء دالة الجدولة الخلفية في Apps Script
             google.script.run
                 .withSuccessHandler(function(results) {
                     resultsContainer.innerHTML = '';
@@ -71,12 +141,9 @@
                             item.className = 'search-result-item';
                             item.textContent = servant.name;
                             
-                            // عند الضغط على اسم الخادم من القائمة المختارة
                             item.onclick = function() {
                                 document.getElementById('searchInput').value = servant.name;
                                 resultsContainer.style.display = 'none';
-                                
-                                // يمكنك إضافة أي أكواد إضافية هنا (مثل ملء الحقول الأخرى تلقائياً)
                             };
                             
                             resultsContainer.appendChild(item);
@@ -88,14 +155,13 @@
                     }
                 })
                 .withFailureHandler(function(error) {
-                    console.error("حدث خطأ أثناء البحث: ", error);
+                    console.error("خطأ في الاتصال: ", error);
                 })
                 .searchServantsBackend(trimmedQuery);
         }
 
-        // إغلاق القائمة عند النقر خارجها
         document.addEventListener('click', function(event) {
-            const container = document.querySelector('.search-container');
+            const container = document.querySelector('.search-box-wrapper');
             if (!container.contains(event.target)) {
                 document.getElementById('searchResults').style.display = 'none';
             }
