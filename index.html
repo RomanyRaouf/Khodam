@@ -19,6 +19,10 @@
     .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 12px; border-radius: 6px; }
     .submit-btn { background-color: #198754; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 10px; height: 45px; font-size: 16px; }
     .submit-btn:hover { background-color: #157347; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #dee2e6; padding: 10px; text-align: center; font-size: 13px; }
+    th { background-color: #0d6efd; color: white; }
+    tr:nth-child(even) { background-color: #f8f9fa; }
     .msg-box { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; display: none; }
     .msg-success { background-color: #d1e7dd; color: #0f5132; }
     .msg-error { background-color: #f8d7da; color: #842029; }
@@ -82,21 +86,29 @@
       </div>
 
       <button type="submit" class="submit-btn" id="saveBtn">💾 حفظ الحضور</button>
-      <button type="button" class="submit-btn" onclick="finishRegistration()">✅ إنهاء التسجيل</button>
+     <button type="button" class="submit-btn" onclick="finishRegistration()">✅ إنهاء التسجيل</button>
+
       <div id="formMsg" class="msg-box"></div>
     </form>
   </div>
-
   <div id="reportsTab" class="tab-content">
-    <p>📊 هنا هيظهر التقرير اليومي</p>
+    <div class="form-group">
+      <label for="reportDate">اختر التاريخ:</label>
+      <input type="date" id="reportDate">
+    </div>
+    <button class="submit-btn" onclick="getDailyReport()">🔍 عرض التقرير</button>
+    <div id="reportResults"></div>
   </div>
 </div>
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcBWUaw2_iK3Bnp-PZUsucv_Gl2iFBbQYi8_KHfsvI1OAH56Np4ILq6kTDOexKgRdqLw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQ0lvSgPrcvqwzU1orykG9JiZfPh4o6VQlI5paZtm8eaQoJKGL7vTpv7fN1GQ_85VRXw/exec";
 let allServants = [];
 
-document.getElementById('regDate').valueAsDate = new Date();
-window.addEventListener('DOMContentLoaded', loadServantsData);
+window.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('regDate')) document.getElementById('regDate').valueAsDate = new Date();
+  if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
+  loadServantsData();
+});
 
 function loadServantsData() {
   fetch(`${SCRIPT_URL}?action=searchServants`)
@@ -129,6 +141,15 @@ function onServantSelect() {
     document.getElementById('serviceType').value = found.service || '';
   }
 }
+function switchTab(tabId, btn) {
+  // إخفاء كل التبويبات
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  // إزالة التفعيل من كل الأزرار
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  // تفعيل التبويب المطلوب
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
 function submitAttendance(e) {
   e.preventDefault();
   const msg = document.getElementById('formMsg');
@@ -137,6 +158,7 @@ function submitAttendance(e) {
   saveBtn.disabled = true;
   saveBtn.innerText = "⏳ جاري الحفظ...";
 
+  // التحقق من اختيارات الكتاب المقدس
   const bibleSelected = document.querySelectorAll('#bibleReadingGroup input:checked');
   if (bibleSelected.length > 2) {
     alert("مسموح تختار اختيارين فقط في الكتاب المقدس.");
@@ -147,6 +169,7 @@ function submitAttendance(e) {
   let bibleValues = [];
   bibleSelected.forEach(item => bibleValues.push(item.value));
 
+  // تجهيز البيانات
   const payload = {
     action: "saveData",
     sheetName: "السجل",
@@ -161,6 +184,7 @@ function submitAttendance(e) {
     bible: bibleValues.join(" + ") || "لم يحدد"
   };
 
+  // إرسال البيانات للسكريبت
   fetch(`${SCRIPT_URL}?${new URLSearchParams(payload).toString()}`)
     .then(res => res.json())
     .then(res => {
@@ -187,12 +211,75 @@ function resetForm() {
   document.getElementById('chkSundaySchool').checked = false;
   document.getElementById('chkMeeting').checked = false;
   document.querySelectorAll('#bibleReadingGroup input').forEach(chk => chk.checked = false);
-  document.getElementById('regDate').valueAsDate = new Date();
+  if (document.getElementById('regDate')) {
+    document.getElementById('regDate').valueAsDate = new Date();
+  }
 }
 
 function finishRegistration() {
-  alert("✅ تم إنهاء التسجيل. باقي الخدام تم تسجيلهم غياب.");
-  // هنا ممكن تضيف كود يبعث الغياب للشيت
+  const dateVal = document.getElementById('regDate').value;
+  const msg = document.getElementById('formMsg');
+  msg.style.display = 'none';
+
+  if (!dateVal) {
+    alert("❌ لازم تختار التاريخ الأول");
+    return;
+  }
+
+  msg.className = "msg-box";
+  msg.innerText = "⏳ جاري إنهاء التسجيل...";
+  msg.style.display = 'block';
+
+  fetch(`${SCRIPT_URL}?action=finishRegistration&sheetName=السجل&date=${encodeURIComponent(dateVal)}`)
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === "success") {
+        msg.className = "msg-box msg-success";
+        msg.innerText = "✅ تم إنهاء التسجيل وتسجيل الغياب للباقي";
+      } else {
+        msg.className = "msg-box msg-error";
+        msg.innerText = "❌ حصل خطأ أثناء إنهاء التسجيل";
+      }
+    })
+    .catch(() => {
+      msg.className = "msg-box msg-error";
+      msg.innerText = "❌ خطأ في الاتصال بالسكريبت";
+    });
+}
+
+
+function getDailyReport() {
+  const dateVal = document.getElementById('reportDate').value;
+  const resultsDiv = document.getElementById('reportResults');
+  if (!dateVal) {
+    alert("يرجى اختيار التاريخ أولاً");
+    return;
+  }
+  resultsDiv.innerHTML = "⏳ جاري تحميل البيانات...";
+  fetch(`${SCRIPT_URL}?action=getAllServantsDataByDate&sheetName=السجل&date=${encodeURIComponent(dateVal)}`)
+    .then(res => res.json())
+    .then(records => {
+      if (!records || records.length === 0) {
+        resultsDiv.innerHTML = "❌ لا توجد بيانات لهذا التاريخ";
+        return;
+      }
+      let html = "<table><thead><tr><th>الكود</th><th>الاسم</th><th>الخدمة</th><th>القداس</th><th>مدارس الأحد</th><th>الاجتماع</th><th>التحضير</th><th>القراءة</th></tr></thead><tbody>";
+      records.forEach(r => {
+        html += `<tr>
+          <td>${r.code || '-'}</td>
+          <td>${r.name || '-'}</td>
+          <td>${r.service || '-'}</td>
+          <td>${r.qaddas || '-'}</td>
+          <td>${r.sundaySchool || '-'}</td>
+          <td>${r.meeting || '-'}</td>
+          <td>${r.preparation || '-'}</td>
+          <td>${r.bible || '-'}</td>
+        </tr>`;
+      });
+      html += "</tbody></table>";
+      resultsDiv.innerHTML = html;
+    })
+    .catch(() => resultsDiv.innerHTML = "❌ خطأ في تحميل التقرير");
 }
 </script>
 </body>
