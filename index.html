@@ -1,169 +1,202 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نظام متابعة وحضور الخدام</title>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body {
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
-    h2 {
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 20px;
-    }
+    body { background-color: #f4f6f9; margin: 0; padding: 20px; font-family: Tahoma; }
+    .container { max-width: 900px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+    .tabs { display: flex; border-bottom: 2px solid #dee2e6; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 12px; text-align: center; background: #f8f9fa; border: none; cursor: pointer; font-size: 16px; font-weight: bold; color: #6c757d; }
+    .tab-btn.active { background: #0d6efd; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input, select, button { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ced4da; }
+    .checkbox-group { display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 12px; border-radius: 6px; }
+    .submit-btn { background-color: #198754; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 10px; height: 45px; font-size: 16px; }
+    .submit-btn:hover { background-color: #157347; }
+    .msg-box { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; display: none; }
+    .msg-success { background-color: #d1e7dd; color: #0f5132; }
+    .msg-error { background-color: #f8d7da; color: #842029; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>⛪ نظام متابعة وحضور الخدام</h2>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('registerTab', this)">📝 تسجيل الحضور</button>
+    <button class="tab-btn" onclick="switchTab('reportsTab', this)">📊 عرض التقارير</button>
+  </div>
 
-    /* التنقل بين التبويبات */
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #dee2e6;
-      margin-bottom: 20px;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      background: #f8f9fa;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      color: #6c757d;
-      transition: 0.3s;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-    .tab-btn.active {
-      background: #0d6efd;
-      color: white;
-    }
+  <div id="registerTab" class="tab-content active">
+    <form id="attendanceForm" onsubmit="submitAttendance(event)">
+      <div class="form-group">
+        <label for="regDate">تاريخ اليوم:</label>
+        <input type="date" id="regDate" required>
+      </div>
 
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
+      <div class="form-group">
+        <label for="servantCode">كود الخادم أو الاسم:</label>
+        <input type="text" id="servantCode" list="servantsList" onchange="onServantSelect()" required>
+        <datalist id="servantsList"></datalist>
+      </div>
 
-    /* نماذج الإدخال والفلترة */
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-      font-size: 14px;
-      color: #495057;
-    }
-    input, select, textarea, button {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 6px;
-      border: 1px solid #ced4da;
-      font-size: 14px;
-      outline: none;
-    }
-    .checkbox-group {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      background: #f8f9fa;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #e9ecef;
-    }
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-    .checkbox-item input {
-      width: auto;
-      cursor: pointer;
-    }
+      <div class="form-group">
+        <label for="servantName">اسم الخادم:</label>
+        <input type="text" id="servantName" readonly>
+      </div>
 
-    .submit-btn {
-      background-color: #198754;
-      color: white;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      margin-top: 10px;
-      height: 45px;
-      font-size: 16px;
-    }
-    .submit-btn:hover {
-      background-color: #157347;
-    }
+      <div class="form-group">
+        <label for="serviceType">الخدمة / المرحلة:</label>
+        <input type="text" id="serviceType" readonly>
+      </div>
 
-    .filter-section {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid #e9ecef;
-    }
-    .filter-section .form-group {
-      flex: 1;
-      min-width: 180px;
-      margin-bottom: 0;
-    }
+      <div class="form-group">
+        <label>أنشطة الحضور:</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="chkQaddas"> ⛪ القداس</label>
+          <label><input type="checkbox" id="chkSundaySchool"> 🏫 مدارس الأحد</label>
+          <label><input type="checkbox" id="chkMeeting"> 🤝 اجتماع الخدمة</label>
+        </div>
+      </div>
 
-    .search-btn {
-      background-color: #0d6efd;
-      color: white;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      height: 42px;
-    }
-    .search-btn:hover {
-      background-color: #0b5ed7;
-    }
+      <div class="form-group">
+        <label for="preparation">تحضير الدرس:</label>
+        <select id="preparation">
+          <option value="تم التحضير">تم التحضير</option>
+          <option value="لم يتم">لم يتم</option>
+        </select>
+      </div>
 
-    /* الجداول والشارات */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #dee2e6;
-      padding: 10px;
-      text-align: center;
-      font-size: 13px;
-    }
-    th {
-      background-color: #0d6efd;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background-color: #f8f9fa;
-    }
-    .badge-present {
+      <div class="form-group">
+        <label>قراءة الكتاب المقدس:</label>
+        <div class="checkbox-group" id="bibleReadingGroup">
+          <label><input type="checkbox" value="عهد قديم"> 📖 عهد قديم</label>
+          <label><input type="checkbox" value="عهد جديد"> 📖 عهد جديد</label>
+          <label><input type="checkbox" value="غير منتظم"> 📖 غير منتظم</label>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="saveBtn">💾 حفظ الحضور</button>
+      <button type="button" class="submit-btn" onclick="finishRegistration()">✅ إنهاء التسجيل</button>
+      <div id="formMsg" class="msg-box"></div>
+    </form>
+  </div>
+
+  <div id="reportsTab" class="tab-content">
+    <p>📊 هنا هيظهر التقرير اليومي</p>
+  </div>
+</div>
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcBWUaw2_iK3Bnp-PZUsucv_Gl2iFBbQYi8_KHfsvI1OAH56Np4ILq6kTDOexKgRdqLw/exec";
+let allServants = [];
+
+document.getElementById('regDate').valueAsDate = new Date();
+window.addEventListener('DOMContentLoaded', loadServantsData);
+
+function loadServantsData() {
+  fetch(`${SCRIPT_URL}?action=searchServants`)
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        allServants = data;
+        populateDatalist(data);
+      }
+    });
+}
+
+function populateDatalist(list) {
+  const datalist = document.getElementById('servantsList');
+  datalist.innerHTML = '';
+  list.forEach(s => {
+    const option = document.createElement('option');
+    option.value = s.code;
+    option.label = `${s.name} - ${s.service || ''}`;
+    datalist.appendChild(option);
+  });
+}
+
+function onServantSelect() {
+  const val = document.getElementById('servantCode').value.trim();
+  const found = allServants.find(s => s.code.toString() === val || s.name.includes(val));
+  if (found) {
+    document.getElementById('servantCode').value = found.code;
+    document.getElementById('servantName').value = found.name;
+    document.getElementById('serviceType').value = found.service || '';
+  }
+}
+function submitAttendance(e) {
+  e.preventDefault();
+  const msg = document.getElementById('formMsg');
+  const saveBtn = document.getElementById('saveBtn');
+  msg.style.display = 'none';
+  saveBtn.disabled = true;
+  saveBtn.innerText = "⏳ جاري الحفظ...";
+
+  const bibleSelected = document.querySelectorAll('#bibleReadingGroup input:checked');
+  if (bibleSelected.length > 2) {
+    alert("مسموح تختار اختيارين فقط في الكتاب المقدس.");
+    saveBtn.disabled = false;
+    saveBtn.innerText = "💾 حفظ الحضور";
+    return;
+  }
+  let bibleValues = [];
+  bibleSelected.forEach(item => bibleValues.push(item.value));
+
+  const payload = {
+    action: "saveData",
+    sheetName: "السجل",
+    date: document.getElementById('regDate').value,
+    code: document.getElementById('servantCode').value,
+    name: document.getElementById('servantName').value,
+    service: document.getElementById('serviceType').value,
+    qaddas: document.getElementById('chkQaddas').checked ? "حضر" : "لم يحضر",
+    sundaySchool: document.getElementById('chkSundaySchool').checked ? "حضر" : "لم يحضر",
+    meeting: document.getElementById('chkMeeting').checked ? "حضر" : "لم يحضر",
+    preparation: document.getElementById('preparation').value,
+    bible: bibleValues.join(" + ") || "لم يحدد"
+  };
+
+  fetch(`${SCRIPT_URL}?${new URLSearchParams(payload).toString()}`)
+    .then(res => res.json())
+    .then(res => {
+      msg.className = "msg-box msg-success";
+      msg.innerText = "✅ تم تسجيل الحضور بنجاح!";
+      msg.style.display = 'block';
+      resetForm();
+    })
+    .catch(() => {
+      msg.className = "msg-box msg-error";
+      msg.innerText = "❌ حصل خطأ أثناء التسجيل";
+      msg.style.display = 'block';
+    })
+    .finally(() => {
+      saveBtn.disabled = false;
+      saveBtn.innerText = "💾 حفظ الحضور";
+    });
+}
+function resetForm() {
+  document.getElementById('servantCode').value = '';
+  document.getElementById('servantName').value = '';
+  document.getElementById('serviceType').value = '';
+  document.getElementById('chkQaddas').checked = false;
+  document.getElementById('chkSundaySchool').checked = false;
+  document.getElementById('chkMeeting').checked = false;
+  document.querySelectorAll('#bibleReadingGroup input').forEach(chk => chk.checked = false);
+  document.getElementById('regDate').valueAsDate = new Date();
+}
+
+function finishRegistration() {
+  alert("✅ تم إنهاء التسجيل. باقي الخدام تم تسجيلهم غياب.");
+  // هنا ممكن تضيف كود يبعث الغياب للشيت
+}
+</script>
+</body>
+</html>
       background-color: #d1e7dd;
       color: #0f5132;
       padding: 4px 8px;
